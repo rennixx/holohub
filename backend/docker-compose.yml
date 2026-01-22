@@ -1,0 +1,251 @@
+version: '3.8'
+
+services:
+  # -----------------------------------------------------------------------------
+  # PostgreSQL Database (with TimescaleDB extension)
+  # -----------------------------------------------------------------------------
+  postgres:
+    image: timescale/timescaledb:pg16
+    container_name: holohub-postgres
+    environment:
+      POSTGRES_USER: holohub
+      POSTGRES_PASSWORD: holohub_dev
+      POSTGRES_DB: holohub
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U holohub -d holohub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - holohub-network
+
+  # -----------------------------------------------------------------------------
+  # Redis (Cache + Message Queue)
+  # -----------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: holohub-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - holohub-network
+
+  # -----------------------------------------------------------------------------
+  # MinIO (S3-compatible storage)
+  # -----------------------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: holohub-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - holohub-network
+
+  # -----------------------------------------------------------------------------
+  # MinIO Init (Create buckets on startup)
+  # -----------------------------------------------------------------------------
+  minio-init:
+    image: minio/mc:latest
+    container_name: holohub-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+      sleep 5 &&
+      mc alias set minio http://minio:9000 minioadmin minioadmin &&
+      mc mb minio/holohub-dev --ignore-existing &&
+      mc mb minio/holohub-test --ignore-existing &&
+      mc anonymous set download minio/holohub-dev &&
+      echo 'MinIO buckets created successfully'
+      "
+    networks:
+      - holohub-network
+
+  # -----------------------------------------------------------------------------
+  # Adminer (Database GUI)
+  # -----------------------------------------------------------------------------
+  adminer:
+    image: adminer:latest
+    container_name: holohub-adminer
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: nette
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - holohub-network
+
+  # -----------------------------------------------------------------------------
+  # FastAPI Application
+  # -----------------------------------------------------------------------------
+  api:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile.api
+    container_name: holohub-api
+    ports:
+      - "8000:8000"
+    environment:
+      # Application
+      APP_NAME: HoloHub
+      APP_ENV: development
+      DEBUG: "true"
+      API_V1_PREFIX: /api/v1
+
+      # Database
+      DATABASE_URL: postgresql+asyncpg://holohub:holohub_dev@postgres:5432/holohub
+      DB_POOL_SIZE: 20
+      DB_MAX_OVERFLOW: 10
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+
+      # Security
+      SECRET_KEY: dev-secret-key-change-in-production
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      MFA_ENCRYPTION_KEY: dev-mfa-key-change-in-production
+
+      # S3/MinIO
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_BUCKET: holohub-dev
+      S3_REGION: us-east-1
+      S3_USE_SSL: "false"
+
+      # CORS
+      CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000"]'
+
+      # Rate Limiting
+      RATE_LIMIT_ENABLED: "true"
+      RATE_LIMIT_STORAGE_URI: redis://redis:6379/1
+
+      # Celery
+      CELERY_BROKER_URL: redis://redis:6379/2
+      CELERY_RESULT_BACKEND: redis://redis:6379/3
+
+      # Logging
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/tests:/app/tests
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - holohub-network
+
+  # -----------------------------------------------------------------------------
+  # Celery Worker (Background Tasks)
+  # -----------------------------------------------------------------------------
+  worker:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile.api
+    container_name: holohub-worker
+    environment:
+      # Database
+      DATABASE_URL: postgresql+asyncpg://holohub:holohub_dev@postgres:5432/holohub
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/2
+      CELERY_RESULT_BACKEND: redis://redis:6379/3
+
+      # S3/MinIO
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_BUCKET: holohub-dev
+      S3_REGION: us-east-1
+      S3_USE_SSL: "false"
+
+      # Security
+      SECRET_KEY: dev-secret-key-change-in-production
+      MFA_ENCRYPTION_KEY: dev-mfa-key-change-in-production
+
+      # Logging
+      LOG_LEVEL: INFO
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    volumes:
+      - ./backend/app:/app/app
+    command: celery -A app.worker worker --loglevel=info --concurrency=4
+    networks:
+      - holohub-network
+
+  # -----------------------------------------------------------------------------
+  # Flower (Celery Monitor)
+  # -----------------------------------------------------------------------------
+  flower:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile.api
+    container_name: holohub-flower
+    ports:
+      - "5555:5555"
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/2
+      CELERY_RESULT_BACKEND: redis://redis:6379/3
+      FLOWER_BASIC_AUTH: admin:admin
+    depends_on:
+      - redis
+    command: celery -A app.worker flower --port=5555
+    networks:
+      - holohub-network
+
+networks:
+  holohub-network:
+    driver: bridge
+    name: holohub-network
+
+volumes:
+  postgres_data:
+    driver: local
+    name: holohub-postgres-data
+  redis_data:
+    driver: local
+    name: holohub-redis-data
+  minio_data:
+    driver: local
+    name: holohub-minio-data
