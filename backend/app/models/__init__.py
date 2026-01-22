@@ -8,6 +8,7 @@ from typing import Optional
 
 from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
+from uuid_utils.compat import UUID as pyUUID
 
 from app.db.base import Base
 
@@ -54,7 +55,7 @@ class OrganizationMixin:
     """
 
     @declared_attr.directive
-    def organization_id(cls) -> Mapped["uuid.UUID"]:
+    def organization_id(cls) -> Mapped[pyUUID]:
         """Organization foreign key."""
         return mapped_column(
             ForeignKey("organizations.id", ondelete="CASCADE"),
@@ -67,9 +68,8 @@ class OrganizationMixin:
 from app.models.asset import Asset, AssetAnalytics
 from app.models.audit_log import AuditLog
 from app.models.device import Device, DeviceHeartbeat
-from app.models.device_playlist import DevicePlaylist
 from app.models.organization import Organization
-from app.models.playlist import Playlist, PlaylistItem
+from app.models.playlist import Playlist, PlaylistItem, DevicePlaylist
 from app.models.user import User
 
 __all__ = [
@@ -89,5 +89,3 @@ __all__ = [
     "DevicePlaylist",
     "AuditLog",
 ]
-
-import uuid
