@@ -232,9 +232,13 @@ class Device(Base, TimestampMixin, SoftDeleteMixin, OrganizationMixin):
         current_asset: Optional[pyUUID] = None,
         playback_position: Optional[int] = None,
     ) -> None:
-        """Update device heartbeat information."""
-        from datetime import timedelta
+        """
+        Update device heartbeat information.
 
+        Note: Extra metrics (cpu_percent, memory_percent, temperature, etc.)
+        are typically stored in DeviceHeartbeat time-series table.
+        This method updates the Device's current state.
+        """
         self.last_heartbeat = datetime.now()
         self.consecutive_failures = 0
 
