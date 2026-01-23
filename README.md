@@ -1,5 +1,5 @@
 <div align="center">
-# HoloHub
+ <h1>HoloHub</h1>
 </div>
 <div align="center">
 
