@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # -----------------------------------------------------------------------------
   # PostgreSQL Database (with TimescaleDB extension)
@@ -109,7 +107,7 @@ services:
   # -----------------------------------------------------------------------------
   api:
     build:
-      context: ./backend
+      context: .
       dockerfile: docker/Dockerfile.api
     container_name: holohub-api
     ports:
@@ -167,8 +165,8 @@ services:
       minio-init:
         condition: service_completed_successfully
     volumes:
-      - ./backend/app:/app/app
-      - ./backend/tests:/app/tests
+      - ./app:/app/app
+      - ./tests:/app/tests
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     networks:
       - holohub-network
@@ -178,7 +176,7 @@ services:
   # -----------------------------------------------------------------------------
   worker:
     build:
-      context: ./backend
+      context: .
       dockerfile: docker/Dockerfile.api
     container_name: holohub-worker
     environment:
@@ -219,7 +217,7 @@ services:
   # -----------------------------------------------------------------------------
   flower:
     build:
-      context: ./backend
+      context: .
       dockerfile: docker/Dockerfile.api
     container_name: holohub-flower
     ports:

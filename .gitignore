@@ -36,6 +36,7 @@ package-lock.json.lockfile
 logs/
 *.log
 *.log.*
+nul
 
 # Test coverage / reports
 coverage/
