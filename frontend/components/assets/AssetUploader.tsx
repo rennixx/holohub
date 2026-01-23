@@ -6,7 +6,7 @@ import { Upload, X, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { assetsApi } from "@/api";
+import { assetsApi } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 

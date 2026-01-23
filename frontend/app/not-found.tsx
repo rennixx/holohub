@@ -1,8 +1,13 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Home } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function NotFound() {
+  const router = useRouter();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="max-w-md w-full">
@@ -19,7 +24,7 @@ export default function NotFound() {
           </p>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button onClick={() => (window.location.href = "/dashboard")}>
+          <Button onClick={() => router.push("/dashboard")}>
             <Home className="mr-2 h-4 w-4" />
             Go to Dashboard
           </Button>

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RefreshCw, Trash2, Image, Playlist } from "lucide-react";
+import { RefreshCw, Trash2, Image, ListMusic } from "lucide-react";
 import { toast } from "sonner";
 
 interface DeviceCommandPanelProps {
@@ -62,7 +62,7 @@ export function DeviceCommandPanel({ deviceId, onCommandSent }: DeviceCommandPan
     { value: "restart", label: "Restart Device", icon: RefreshCw, description: "Restart the device" },
     { value: "clear_cache", label: "Clear Cache", icon: Trash2, description: "Clear local asset cache" },
     { value: "screenshot", label: "Take Screenshot", icon: Image, description: "Capture current display" },
-    { value: "update_playlist", label: "Update Playlist", icon: Playlist, description: "Assign a new playlist" },
+    { value: "update_playlist", label: "Update Playlist", icon: ListMusic, description: "Assign a new playlist" },
   ];
 
   const selectedCommand = commands.find((c) => c.value === command);
