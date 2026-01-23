@@ -85,7 +85,3 @@ coverage/
 storybook-static/
 assets-debug/
 !.gitkeep
-
-# Markdown
-*.md
-*.markdown
