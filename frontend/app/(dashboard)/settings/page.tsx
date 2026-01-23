@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { organizationsApi } from "@/api";
-import { useAuthStore } from "@/store";
+import { organizationsApi } from "@/lib/api";
+import { useAuthStore } from "@/lib/store";
 import { toast } from "sonner";
 
 export default function SettingsPage() {

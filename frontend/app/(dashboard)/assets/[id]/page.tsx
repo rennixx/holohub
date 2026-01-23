@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThreeDPreview } from "@/components/assets";
-import { assetsApi } from "@/api";
+import { assetsApi } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowLeft, Edit, Trash2, HardDrive, Clock, Package } from "lucide-react";
 import Link from "next/link";

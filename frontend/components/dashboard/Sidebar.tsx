@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
-import { useUIStore } from "@/store";
+import { useUIStore } from "@/lib/store";
 import {
   LayoutDashboard,
   Box,
@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuthStore } from "@/store";
+import { useAuthStore } from "@/lib/store";
 
 interface NavItem {
   title: string;

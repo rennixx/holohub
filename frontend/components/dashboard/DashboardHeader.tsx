@@ -2,8 +2,8 @@
 
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUIStore } from "@/store";
-import { useAuthStore } from "@/store";
+import { useUIStore } from "@/lib/store";
+import { useAuthStore } from "@/lib/store";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
-import { authApi } from "@/api";
+import { authApi } from "@/lib/api";
 
 export function DashboardHeader() {
   const router = useRouter();

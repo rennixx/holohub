@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAuthStore } from "@/store";
+import { useAuthStore } from "@/lib/store";
 import { Loader2 } from "lucide-react";
 import { UserRole } from "@/types";
 

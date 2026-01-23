@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Search, X, Grid3x3, List } from "lucide-react";
 import { AssetCategory, ProcessingStatus } from "@/types";
-import { useUIStore } from "@/store";
+import { useUIStore } from "@/lib/store";
 import { useCallback } from "react";
 
 export interface AssetFiltersState {

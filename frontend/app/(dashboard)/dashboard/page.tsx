@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Box, Monitor, ListMusic, HardDrive } from "lucide-react";
-import { organizationsApi } from "@/api";
-import { useOrganizationStore } from "@/store";
+import { organizationsApi } from "@/lib/api";
+import { useOrganizationStore } from "@/lib/store";
 
 export default function DashboardPage() {
   const { setStats } = useOrganizationStore();

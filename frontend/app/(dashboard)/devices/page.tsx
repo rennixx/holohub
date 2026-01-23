@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DeviceTable, DeviceMap } from "@/components/devices";
-import { devicesApi } from "@/api";
+import { devicesApi } from "@/lib/api";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Device } from "@/types";

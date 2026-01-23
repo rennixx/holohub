@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DeviceStatusBadge, DeviceHealthCard, DeviceCommandPanel } from "@/components/devices";
-import { devicesApi } from "@/api";
+import { devicesApi } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowLeft, MapPin, Cpu } from "lucide-react";
 import Link from "next/link";

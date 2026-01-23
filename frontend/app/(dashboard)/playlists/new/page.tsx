@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { PlaylistEditor, type PlaylistEditorData } from "@/components/playlists";
-import { playlistsApi, assetsApi } from "@/api";
+import { playlistsApi, assetsApi } from "@/lib/api";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";

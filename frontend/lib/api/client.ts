@@ -1,5 +1,5 @@
-import axios, type { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from "axios";
-import { useAuthStore } from "@/store";
+import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig, type AxiosResponse } from "axios";
+import { useAuthStore } from "@/lib/store";
 import { toast } from "sonner";
 
 /**

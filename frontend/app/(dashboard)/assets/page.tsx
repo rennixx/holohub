@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { AssetGrid, AssetFilters, type AssetFiltersState } from "@/components/assets";
-import { assetsApi, type AssetListParams } from "@/api";
+import { assetsApi, type AssetListParams } from "@/lib/api";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
