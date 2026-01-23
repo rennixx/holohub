@@ -6,6 +6,9 @@ Aggregates all v1 API routes.
 from fastapi import APIRouter
 
 from app.api.v1 import auth
+from app.core.config import get_settings
+
+settings = get_settings()
 
 api_router = APIRouter(prefix=settings.api_v1_prefix)
 
