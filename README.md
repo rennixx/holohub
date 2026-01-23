@@ -1,5 +1,6 @@
+<div align="center">
 # HoloHub
-
+</div>
 <div align="center">
 
 **A Production-Grade Spatial Computing CMS for Managing Holographic Displays at Scale**
