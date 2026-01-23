@@ -88,5 +88,3 @@ poetry.lock
 .mypy_cache/
 .dmypy.json
 dmypy.json
-dist/
-*.ini
