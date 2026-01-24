@@ -9,7 +9,6 @@ services:
       POSTGRES_USER: holohub
       POSTGRES_PASSWORD: holohub_dev
       POSTGRES_DB: holohub
-      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     volumes:
