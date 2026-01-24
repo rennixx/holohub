@@ -107,7 +107,7 @@ class AuditLog(Base):
         default={},
         nullable=False,
     )  # {"before": {"status": "offline"}, "after": {"status": "active"}}
-    metadata: Mapped[dict] = mapped_column(
+    audit_metadata: Mapped[dict] = mapped_column(
         JSON,
         default={},
         nullable=False,
@@ -198,7 +198,7 @@ class AuditLog(Base):
         user_id: Optional[pyUUID] = None,
         org_id: Optional[pyUUID] = None,
         changes: Optional[dict] = None,
-        metadata: Optional[dict] = None,
+        audit_metadata: Optional[dict] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
         success: bool = True,
@@ -214,7 +214,7 @@ class AuditLog(Base):
             user_id: User who performed action
             org_id: Organization context
             changes: Before/after values
-            metadata: Additional context
+            audit_metadata: Additional context
             ip_address: IP address
             user_agent: User agent
             success: Whether action succeeded
@@ -230,7 +230,7 @@ class AuditLog(Base):
             user_id=user_id,
             org_id=org_id,
             changes=changes or {},
-            metadata=metadata or {},
+            audit_metadata=audit_metadata or {},
             ip_address=ip_address,
             user_agent=user_agent,
             success=success,

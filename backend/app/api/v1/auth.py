@@ -4,7 +4,7 @@ Authentication Endpoints
 Handles user registration, login, logout, token refresh, and MFA.
 """
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Annotated, Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -49,6 +49,7 @@ from app.schemas.user import (
     UserMe,
     UserPasswordResetRequest,
 )
+from app.schemas.common import MessageResponse
 from uuid_utils.compat import UUID as pyUUID
 
 settings = get_settings()

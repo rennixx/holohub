@@ -65,9 +65,7 @@ class OrganizationMixin:
 
 
 # Import all models
-# TODO: Implement Asset model
-# from app.models.asset import Asset, AssetAnalytics
-from app.models.asset import AssetAnalytics
+from app.models.asset import Asset, AssetAnalytics
 from app.models.audit_log import AuditLog
 from app.models.device import Device, DeviceHeartbeat
 from app.models.organization import Organization
@@ -84,7 +82,7 @@ __all__ = [
     "User",
     "Device",
     "DeviceHeartbeat",
-    # "Asset",  # TODO: Implement Asset model
+    "Asset",
     "AssetAnalytics",
     "Playlist",
     "PlaylistItem",
