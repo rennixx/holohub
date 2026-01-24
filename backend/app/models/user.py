@@ -168,7 +168,7 @@ class User(Base, TimestampMixin, SoftDeleteMixin, OrganizationMixin):
     # Relationships
     organization = relationship("Organization", back_populates="users")
     created_assets = relationship("Asset", back_populates="uploaded_by", foreign_keys="Asset.created_by_id")
-    created_playlists = relationship("Playlist", back_populates="created_by")
+    created_playlists = relationship("Playlist", back_populates="creator")
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"
