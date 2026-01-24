@@ -452,7 +452,7 @@ RequestIP = Annotated[Optional[str], Depends(get_request_ip)]
 
 
 async def get_user_agent(
-    user_agent: Annotated[Optional[str], Header(None)] = None,
+    user_agent: Annotated[Optional[str], Header()] = None,
 ) -> Optional[str]:
     """
     Get user agent from request headers.
