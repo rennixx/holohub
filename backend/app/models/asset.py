@@ -3,6 +3,13 @@ Asset Analytics Model
 
 Time-series data for asset usage analytics using TimescaleDB.
 """
+from datetime import datetime
+from typing import Optional
+
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db.base import Base
 
 
 class AssetAnalytics(Base):
