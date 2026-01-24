@@ -84,7 +84,7 @@ __all__ = [
     "User",
     "Device",
     "DeviceHeartbeat",
-    "Asset",
+    # "Asset",  # TODO: Implement Asset model
     "AssetAnalytics",
     "Playlist",
     "PlaylistItem",
