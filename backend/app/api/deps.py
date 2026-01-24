@@ -23,22 +23,8 @@ security = HTTPBearer(auto_error=False)
 # =============================================================================
 # Database Dependencies
 # =============================================================================
-async def get_db_session() -> AsyncSession:
-    """
-    Get database session.
-
-    This is the main dependency for database access.
-    Automatically handles session lifecycle.
-
-    Yields:
-        AsyncSession: SQLAlchemy async session
-    """
-    async with get_db() as session:
-        yield session
-
-
-# Type alias for database dependency
-DBSession = Annotated[AsyncSession, Depends(get_db_session)]
+# Type alias for database dependency - use get_db() directly
+DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 
 # =============================================================================
