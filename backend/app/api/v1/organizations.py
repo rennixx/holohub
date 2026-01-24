@@ -61,7 +61,14 @@ async def get_current_organization(
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
 
-    return OrganizationResponse.model_validate(org)
+    return OrganizationResponse(
+        id=str(org.id),
+        name=org.name,
+        slug=org.slug,
+        tier=org.tier,
+        storage_quota_gb=org.storage_quota_gb,
+        storage_used_gb=float(org.storage_used_gb),
+    )
 
 
 @router.get("/current/stats", response_model=OrganizationStats)
