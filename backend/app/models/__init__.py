@@ -70,7 +70,7 @@ from app.models.audit_log import AuditLog
 from app.models.device import Device, DeviceHeartbeat
 from app.models.organization import Organization
 from app.models.playlist import Playlist, PlaylistItem, DevicePlaylist
-from app.models.user import User
+from app.models.user import User, UserRole
 
 __all__ = [
     "Base",
@@ -80,6 +80,7 @@ __all__ = [
     # Models
     "Organization",
     "User",
+    "UserRole",
     "Device",
     "DeviceHeartbeat",
     "Asset",

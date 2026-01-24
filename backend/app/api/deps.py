@@ -426,8 +426,8 @@ PaginationParams = Annotated[tuple[int, int], Depends(get_pagination_params)]
 # Request Metadata Dependencies
 # =============================================================================
 async def get_request_ip(
-    x_forwarded_for: Annotated[Optional[str], Header(None)] = None,
-    x_real_ip: Annotated[Optional[str], Header(None)] = None,
+    x_forwarded_for: Annotated[Optional[str], Header()] = None,
+    x_real_ip: Annotated[Optional[str], Header()] = None,
 ) -> Optional[str]:
     """
     Get client IP address from request headers.
