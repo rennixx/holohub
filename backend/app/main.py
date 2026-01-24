@@ -20,8 +20,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1 import auth as auth_v1
 from app.api.v1.router import api_router
 from app.core.config import get_settings
-from app.db.base import close_db, close_redis
-from app.db.redis import get_redis_pool
+from app.db.base import close_db
+from app.db.redis import close_redis, get_redis_pool
 from app.schemas.common import HealthResponse
 
 settings = get_settings()
