@@ -53,7 +53,7 @@ class Organization(Base, TimestampMixin, SoftDeleteMixin):
     id: Mapped[pyUUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=pyUUID.uuid4,
+        default=uuid4,
     )
 
     # Basic info
