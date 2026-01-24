@@ -2,6 +2,18 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { UserMe, TokenPair } from "@/types";
 
+// Helper to set/delete auth cookie (for server-side middleware)
+const setAuthCookie = (tokens: TokenPair | null) => {
+  if (typeof document === "undefined") return;
+
+  if (tokens) {
+    const cookieValue = JSON.stringify({ accessToken: tokens.access_token });
+    document.cookie = `holohub-auth=${encodeURIComponent(cookieValue)}; path=/; max-age=${tokens.expires_in || 3600}; SameSite=lax`;
+  } else {
+    document.cookie = "holohub-auth=; path=/; max-age=0";
+  }
+};
+
 interface AuthState {
   // State
   user: UserMe | null;
@@ -29,23 +41,27 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
 
       // Actions
-      setAuth: (user, tokens) =>
+      setAuth: (user, tokens) => {
+        setAuthCookie(tokens);
         set({
           user,
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token,
           isAuthenticated: true,
           isLoading: false,
-        }),
+        });
+      },
 
-      clearAuth: () =>
+      clearAuth: () => {
+        setAuthCookie(null);
         set({
           user: null,
           accessToken: null,
           refreshToken: null,
           isAuthenticated: false,
           isLoading: false,
-        }),
+        });
+      },
 
       updateTokens: (tokens) =>
         set({
