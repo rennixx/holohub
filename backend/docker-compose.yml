@@ -3,7 +3,7 @@ services:
   # PostgreSQL Database (with TimescaleDB extension)
   # -----------------------------------------------------------------------------
   postgres:
-    image: timescale/timescaledb:pg16
+    image: timescale/timescaledb-ha:pg16
     container_name: holohub-postgres
     environment:
       POSTGRES_USER: holohub
