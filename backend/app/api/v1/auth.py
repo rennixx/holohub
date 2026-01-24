@@ -19,7 +19,6 @@ from app.api.deps import (
     RequestUserAgent,
 )
 from app.core.config import get_settings
-from app.core.row_level_security import AuditLog
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -33,7 +32,7 @@ from app.core.security import (
     verify_mfa_totp,
     verify_password,
 )
-from app.models import Organization, User, UserRole
+from app.models import AuditLog, Organization, User, UserRole
 from app.schemas.token import (
     TokenResponse,
     LoginRequest,
