@@ -6,8 +6,9 @@ Time-series data for asset usage analytics using TimescaleDB.
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String, UUID
 from sqlalchemy.orm import Mapped, mapped_column
+from uuid_utils.compat import UUID as pyUUID
 
 from app.db.base import Base
 
