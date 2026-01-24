@@ -136,10 +136,24 @@ async def register(
     access_token = create_access_token(user.id, org.id, user.role)
     refresh_token = create_refresh_token(user.id, org.id)
 
+    # Build user response
+    user_data = {
+        "id": str(user.id),
+        "email": user.email,
+        "full_name": user.full_name,
+        "avatar_url": user.avatar_url,
+        "role": user.role,
+        "organization_id": str(user.organization_id),
+        "email_verified": user.email_verified,
+        "mfa_enabled": user.mfa_enabled,
+        "permissions": user.permissions,
+    }
+
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
         expires_in=settings.access_token_expire_minutes * 60,
+        user=user_data,
     )
 
 
@@ -260,10 +274,24 @@ async def login(
     access_token = create_access_token(user.id, user.organization_id, user.role)
     refresh_token = create_refresh_token(user.id, user.organization_id)
 
+    # Build user response
+    user_data = {
+        "id": str(user.id),
+        "email": user.email,
+        "full_name": user.full_name,
+        "avatar_url": user.avatar_url,
+        "role": user.role,
+        "organization_id": str(user.organization_id),
+        "email_verified": user.email_verified,
+        "mfa_enabled": user.mfa_enabled,
+        "permissions": user.permissions,
+    }
+
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
         expires_in=settings.access_token_expire_minutes * 60,
+        user=user_data,
     )
 
 

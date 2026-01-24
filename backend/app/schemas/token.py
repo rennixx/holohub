@@ -4,7 +4,7 @@ Token Schemas
 Pydantic schemas for JWT authentication.
 """
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -30,6 +30,7 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int = Field(..., description="Access token expiry in seconds")
+    user: Optional[dict[str, Any]] = Field(None, description="Current user information")
 
 
 class LoginRequest(BaseModel):

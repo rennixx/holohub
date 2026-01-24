@@ -25,14 +25,13 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, user, isLoading, accessToken } = useAuthStore();
+  const { isAuthenticated, user, isLoading, accessToken, setLoading } = useAuthStore();
 
   useEffect(() => {
-    // If we have an access token but no user data, fetch it
-    if (accessToken && !user) {
-      // This would trigger a user fetch in a real app
-      // For now, we'll just set loading to false
-      return;
+    // If we have an access token but no user data, clear loading state
+    // This can happen after page refresh when tokens are loaded from localStorage
+    if (accessToken && !user && isLoading) {
+      setLoading(false);
     }
 
     // Redirect to login if auth is required but user is not authenticated
@@ -46,10 +45,10 @@ export function ProtectedRoute({
       router.push("/dashboard");
       return;
     }
-  }, [isAuthenticated, user, isLoading, requireAuth, requiredRoles, router, pathname, redirectTo, accessToken]);
+  }, [isAuthenticated, user, isLoading, requireAuth, requiredRoles, router, pathname, redirectTo, accessToken, setLoading]);
 
-  // Show loading state while checking auth
-  if (isLoading) {
+  // Show loading state while checking auth (but not if we have a token)
+  if (isLoading && !accessToken) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -66,8 +65,8 @@ export function ProtectedRoute({
   }
 
   // If auth is required and user is authenticated, render children
-  if (isAuthenticated && user) {
-    if (requiredRoles && !requiredRoles.includes(user.role)) {
+  if (isAuthenticated) {
+    if (requiredRoles && user && !requiredRoles.includes(user.role)) {
       return (
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
