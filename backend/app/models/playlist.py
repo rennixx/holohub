@@ -20,6 +20,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from uuid_utils import uuid4
 from uuid_utils.compat import UUID as pyUUID
 
 from app.db.base import Base
@@ -64,7 +65,7 @@ class Playlist(Base, TimestampMixin, SoftDeleteMixin, OrganizationMixin):
     id: Mapped[pyUUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=pyUUID.uuid4,
+        default=uuid4,
     )
 
     # Basic info
@@ -331,7 +332,7 @@ class PlaylistItem(Base):
     id: Mapped[pyUUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=pyUUID.uuid4,
+        default=uuid4,
     )
 
     # Foreign keys
@@ -413,7 +414,7 @@ class DevicePlaylist(Base):
     id: Mapped[pyUUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=pyUUID.uuid4,
+        default=uuid4,
     )
 
     # Foreign keys
