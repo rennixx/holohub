@@ -17,8 +17,8 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-# Password hashing context using bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing context using argon2 (more secure and better compatibility)
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 # Argon2 for device secrets (more resistant to GPU attacks)
 argon2_hasher = argon2.PasswordHasher(
