@@ -208,8 +208,11 @@ async def health_check() -> HealthResponse:
     redis_healthy = True
     try:
         pool = get_redis_pool()
-        async with pool.get_connection() as conn:
+        conn = await pool.get_connection()
+        try:
             await conn.ping()
+        finally:
+            await conn.close()
     except Exception:
         redis_healthy = False
 
