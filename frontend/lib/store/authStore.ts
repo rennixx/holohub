@@ -64,11 +64,13 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      updateTokens: (tokens) =>
+      updateTokens: (tokens) => {
+        setAuthCookie(tokens);
         set({
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token,
-        }),
+        });
+      },
 
       setUser: (user) => set({ user }),
 
