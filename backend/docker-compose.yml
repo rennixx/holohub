@@ -6,15 +6,15 @@ services:
     image: timescale/timescaledb-ha:pg16
     container_name: holohub-postgres
     environment:
-      POSTGRES_USER: holohub
-      POSTGRES_PASSWORD: holohub_dev
-      POSTGRES_DB: holohub
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Ha2003ma$
+      POSTGRES_DB: holohub_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U holohub -d holohub"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d holohub_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -111,49 +111,16 @@ services:
     container_name: holohub-api
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
-      # Application
-      APP_NAME: HoloHub
-      APP_ENV: development
-      DEBUG: "true"
-      API_V1_PREFIX: /api/v1
-
-      # Database
-      DATABASE_URL: postgresql+asyncpg://holohub:holohub_dev@postgres:5432/holohub
-      DB_POOL_SIZE: 20
-      DB_MAX_OVERFLOW: 10
-
-      # Redis
+      # Override URLs for Docker service names (localhost -> service names)
+      DATABASE_URL: postgresql+asyncpg://postgres:Ha2003ma$@postgres:5432/holohub_db
       REDIS_URL: redis://redis:6379/0
-
-      # Security
-      SECRET_KEY: dev-secret-key-change-in-production
-      JWT_ALGORITHM: HS256
-      ACCESS_TOKEN_EXPIRE_MINUTES: 15
-      REFRESH_TOKEN_EXPIRE_DAYS: 7
-      MFA_ENCRYPTION_KEY: dev-mfa-key-change-in-production
-
-      # S3/MinIO
-      S3_ENDPOINT: http://minio:9000
-      S3_ACCESS_KEY: minioadmin
-      S3_SECRET_KEY: minioadmin
-      S3_BUCKET: holohub-dev
-      S3_REGION: us-east-1
-      S3_USE_SSL: "false"
-
-      # CORS
-      CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000"]'
-
-      # Rate Limiting
-      RATE_LIMIT_ENABLED: "true"
       RATE_LIMIT_STORAGE_URI: redis://redis:6379/1
-
-      # Celery
       CELERY_BROKER_URL: redis://redis:6379/2
       CELERY_RESULT_BACKEND: redis://redis:6379/3
-
-      # Logging
-      LOG_LEVEL: INFO
+      S3_ENDPOINT: http://minio:9000
     depends_on:
       postgres:
         condition: service_healthy
@@ -180,7 +147,7 @@ services:
     container_name: holohub-worker
     environment:
       # Database
-      DATABASE_URL: postgresql+asyncpg://holohub:holohub_dev@postgres:5432/holohub
+      DATABASE_URL: postgresql+asyncpg://postgres:Ha2003ma$@postgres:5432/holohub_db
 
       # Redis
       REDIS_URL: redis://redis:6379/0
