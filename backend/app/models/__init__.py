@@ -65,7 +65,9 @@ class OrganizationMixin:
 
 
 # Import all models
-from app.models.asset import Asset, AssetAnalytics
+# TODO: Implement Asset model
+# from app.models.asset import Asset, AssetAnalytics
+from app.models.asset import AssetAnalytics
 from app.models.audit_log import AuditLog
 from app.models.device import Device, DeviceHeartbeat
 from app.models.organization import Organization
