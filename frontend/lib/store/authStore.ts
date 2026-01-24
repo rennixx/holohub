@@ -7,7 +7,8 @@ const setAuthCookie = (tokens: TokenPair | null) => {
   if (typeof document === "undefined") return;
 
   if (tokens) {
-    const cookieValue = JSON.stringify({ accessToken: tokens.access_token });
+    // Match the structure expected by middleware: accessToken.accessToken
+    const cookieValue = JSON.stringify({ accessToken: { accessToken: tokens.access_token } });
     document.cookie = `holohub-auth=${encodeURIComponent(cookieValue)}; path=/; max-age=${tokens.expires_in || 3600}; SameSite=lax`;
   } else {
     document.cookie = "holohub-auth=; path=/; max-age=0";

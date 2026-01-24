@@ -6,9 +6,23 @@ import type { NextRequest } from "next/server";
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const accessToken = request.cookies.get("holohub-auth")?.value
-    ? JSON.parse(request.cookies.get("holohub-auth")!.value)
-    : null;
+  const authCookie = request.cookies.get("holohub-auth")?.value;
+
+  // Parse auth cookie - handle both formats
+  let isAuthenticated = false;
+  if (authCookie) {
+    try {
+      const parsed = JSON.parse(authCookie);
+      // Handle nested format: { accessToken: { accessToken: "..." } }
+      // or flat format: { accessToken: "..." }
+      isAuthenticated = !!(
+        parsed?.accessToken?.accessToken ||
+        parsed?.accessToken
+      );
+    } catch {
+      // Invalid JSON, not authenticated
+    }
+  }
 
   // Define public routes that don't require authentication
   const publicRoutes = ["/login", "/register", "/api/v1/auth"];
@@ -17,9 +31,6 @@ export function middleware(request: NextRequest) {
   // Define auth routes that should redirect if already authenticated
   const authRoutes = ["/login", "/register"];
   const isAuthRoute = authRoutes.some((route) => pathname === route);
-
-  // Check if user is authenticated
-  const isAuthenticated = accessToken?.accessToken?.accessToken;
 
   // Redirect to login if trying to access protected route while not authenticated
   if (!isPublicRoute && !isAuthenticated) {
