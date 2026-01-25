@@ -45,12 +45,21 @@ interface DeviceTableProps {
   onCommand?: (id: string, command: string) => void;
 }
 
-export function DeviceTable({ devices, onCommand }: DeviceTableProps) {
+export function DeviceTable({ devices, isLoading, onCommand }: DeviceTableProps) {
   const isOnline = (device: Device) => {
     if (!device.last_heartbeat) return false;
     const lastSeen = new Date(device.last_heartbeat);
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
     return lastSeen > fiveMinutesAgo;
+  };
+
+  const getLocation = (device: Device) => {
+    const meta = device.location_metadata;
+    if (!meta || typeof meta !== "object") return "-";
+    if (meta.building && meta.floor) return `${meta.building} - Floor ${meta.floor}`;
+    if (meta.building) return meta.building as string;
+    if (meta.room) return meta.room as string;
+    return "-";
   };
 
   return (
@@ -59,7 +68,7 @@ export function DeviceTable({ devices, onCommand }: DeviceTableProps) {
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Serial Number</TableHead>
+            <TableHead>Hardware ID</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Location</TableHead>
             <TableHead>Last Seen</TableHead>
@@ -67,7 +76,9 @@ export function DeviceTable({ devices, onCommand }: DeviceTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {devices.length === 0 ? (
+          {isLoading ? (
+            <TableSkeleton />
+          ) : devices.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                 No devices found
@@ -81,7 +92,7 @@ export function DeviceTable({ devices, onCommand }: DeviceTableProps) {
                     {device.name}
                   </Link>
                 </TableCell>
-                <TableCell className="font-mono text-sm">{device.serial_number}</TableCell>
+                <TableCell className="font-mono text-sm">{device.hardware_id}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <DeviceStatusBadge status={device.status} />
@@ -92,7 +103,7 @@ export function DeviceTable({ devices, onCommand }: DeviceTableProps) {
                     )}
                   </div>
                 </TableCell>
-                <TableCell>{device.location || "-"}</TableCell>
+                <TableCell>{getLocation(device)}</TableCell>
                 <TableCell>
                   {device.last_heartbeat
                     ? formatDistanceToNow(new Date(device.last_heartbeat), { addSuffix: true })
@@ -111,9 +122,14 @@ export function DeviceTable({ devices, onCommand }: DeviceTableProps) {
                         <Link href={`/devices/${device.id}`}>View Details</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => onCommand?.(device.id, "restart")}
+                        onClick={() => onCommand?.(device.id, "refresh")}
                       >
-                        Restart
+                        Refresh Content
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => onCommand?.(device.id, "reboot")}
+                      >
+                        Reboot
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => onCommand?.(device.id, "clear_cache")}
