@@ -32,6 +32,24 @@ const nextConfig = {
       'utf-8-validate': 'commonjs utf-8-validate',
       'bufferutil': 'commonjs bufferutil',
     });
+
+    // Optimize chunk splitting to prevent vendor chunk issues
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        ...config.optimization.splitChunks,
+        cacheGroups: {
+          ...config.optimization.splitChunks?.cacheGroups,
+          tanstack: {
+            name: 'tanstack',
+            test: /[\\/]node_modules[\\/](@tanstack|@tanstack\/react-query)/,
+            priority: 30,
+            reuseExistingChunk: true,
+          },
+        },
+      },
+    };
+
     return config;
   },
 
