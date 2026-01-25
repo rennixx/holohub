@@ -248,6 +248,218 @@ class LookingGlassDisplayBackend(DisplayBackend):
         self.current_content = None
 
 
+class Real3DDisplayBackend(DisplayBackend):
+    """
+    Real 3D display backend using pyglet + trimesh.
+
+    Displays 3D GLB models in a rotating view.
+    Works without Looking Glass hardware for testing.
+    """
+
+    def __init__(self, config: DisplayConfig):
+        self.config = config
+        self.current_content: Optional[ContentItem] = None
+        self._window = None
+        self._viewer = None
+        self._scene = None
+        self._initialized = False
+        self._rotation = 0.0
+
+    def initialize(self) -> bool:
+        """Initialize 3D display window."""
+        try:
+            import trimesh
+
+            logger.info(f"Initializing 3D display: {self.config.display_type.value}")
+            logger.info(f"  Resolution: {self.config.resolution[0]}x{self.config.resolution[1]}")
+
+            # Try to create a simple viewer with pyglet
+            try:
+                import pyglet
+                from pyglet.gl import *
+
+                # Create window
+                window_width, window_height = self.config.resolution
+                self._window = pyglet.window.Window(
+                    width=window_width,
+                    height=window_height,
+                    caption="HoloHub 3D Display",
+                    resizable=False,
+                )
+
+                # Setup OpenGL basic state
+                glEnable(GL_DEPTH_TEST)
+                glEnable(GL_LIGHTING)
+                glEnable(GL_LIGHT0)
+                glEnable(GL_COLOR_MATERIAL)
+                glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
+
+                # Set up lighting
+                glLightfv(GL_LIGHT0, GL_POSITION, (1.0, 1.0, 1.0, 0.0))
+                glLightfv(GL_LIGHT0, GL_AMBIENT, (0.2, 0.2, 0.2, 1.0))
+                glLightfv(GL_LIGHT0, GL_DIFFUSE, (0.8, 0.8, 0.8, 1.0))
+
+                # Set up projection
+                glMatrixMode(GL_PROJECTION)
+                glLoadIdentity()
+                gluPerspective(45, (window_width / window_height), 0.1, 100.0)
+
+                glMatrixMode(GL_MODELVIEW)
+                glLoadIdentity()
+                gluLookAt(0, 1.5, 3,  # Eye
+                          0, 0, 0,   # Target
+                          0, 1, 0)    # Up
+
+                glClearColor(0.1, 0.1, 0.1, 1.0)
+
+                self._initialized = True
+                logger.info("3D display window initialized successfully")
+
+            except ImportError:
+                logger.warning("pyglet not available, using viewer mode")
+                # Fall back to trimesh viewer if available
+                self._use_viewer_mode()
+
+            return True
+
+        except ImportError:
+            logger.error("Neither pyglet nor trimesh viewer available")
+            return False
+
+    def _use_viewer_mode(self) -> bool:
+        """Use trimesh's built-in viewer."""
+        if self._trimesh is None:
+            return False
+
+        logger.info("Using trimesh viewer mode")
+        return True
+
+    def show_content(self, content: ContentItem) -> bool:
+        """Show 3D content on display."""
+        if not self._initialized:
+            logger.error("Display not initialized")
+            return False
+
+        if not content.file_path.exists():
+            logger.error(f"Content file not found: {content.file_path}")
+            return False
+
+        try:
+            import trimesh
+
+            # Load the 3D model
+            logger.info(f"Loading 3D model: {content.file_path}")
+            scene = trimesh.load(str(content.file_path), force_load_meshes=True)
+
+            # Center and scale the model
+            scene = self._normalize_scene(scene)
+
+            self._scene = scene
+            self.current_content = content
+
+            # If using window mode, start rendering
+            if self._window is not None:
+                self._start_rendering()
+            else:
+                # Viewer mode - just show and wait
+                logger.info(f"Displaying model: {content.asset_id}")
+                if content.duration:
+                    import time
+                    time.sleep(min(content.duration, 10))
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to display 3D content: {e}")
+            return False
+
+    def _normalize_scene(self, scene):
+        """Center and scale scene for display."""
+        import trimesh
+
+        # Get scene bounds
+        bounds = scene.bounds
+        if bounds is not None and not bounds.is_empty:
+            # Center the scene
+            centroid = bounds.centroid
+            for geom in scene.geometry.values():
+                geom.apply_translation(-centroid[0], -centroid[1], -centroid[2])
+
+            # Scale to fit in view
+            extents = bounds.extents
+            max_extent = max(extents)
+            if max_extent > 0:
+                scale = 1.5 / max_extent  # Make it fill about 75% of view
+                for geom in scene.geometry.values():
+                    geom.apply_scale([scale, scale, scale])
+
+        return scene
+
+    def _start_rendering(self):
+        """Start the rendering loop."""
+        import pyglet
+        pyglet.app.run()
+
+    def _render_scene(self):
+        """Render the current scene (called by pyglet)."""
+        import trimesh
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        if self._scene is not None:
+            # Get geometry from scene
+            for geom in self._scene.geometry.values():
+                # Convert trimesh geometry to OpenGL format
+                vertices = geom.vertices
+                faces = geom.faces
+                normals = geom.vertex_normals
+
+                # Enable vertex arrays
+                glEnableClientState(GL_VERTEX_ARRAY)
+                glEnableClientState(GL_NORMAL_ARRAY)
+
+                glVertexPointer(3, GL_DOUBLE, vertices)
+                glNormalPointer(GL_DOUBLE, normals)
+
+                if hasattr(faces, 'shape') and len(faces.shape) == 2:
+                    # Triangles
+                    glDrawElements(GL_TRIANGLES, faces.size, GL_UNSIGNED_INT, faces)
+                else:
+                    # Simple triangles
+                    glDrawArrays(GL_TRIANGLES, 0, vertices.shape[0])
+
+                glDisableClientState(GL_VERTEX_ARRAY)
+                glDisableClientState(GL_NORMAL_ARRAY)
+
+        self._rotation += 0.5
+
+        glFlush()
+
+    def clear(self) -> None:
+        """Clear display."""
+        self._scene = None
+        self.current_content = None
+        if self._window is not None:
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+    def set_brightness(self, brightness: int) -> None:
+        """Set display brightness (0-100)."""
+        self.config.brightness = max(0, min(100, brightness))
+        # Update lighting if window is active
+        if self._initialized and self._window is not None:
+            b = brightness / 100.0
+            glLightfv(GL_LIGHT0, GL_DIFFUSE, (b * 0.8, b * 0.8, b * 0.8, 1.0))
+
+    def shutdown(self) -> None:
+        """Shutdown display."""
+        if self._window is not None:
+            import pyglet
+            pyglet.app.exit()
+        self._initialized = False
+        self._scene = None
+        self.current_content = None
+
+
 class DisplayManager:
     """
     Main display manager for holographic content.
@@ -255,17 +467,21 @@ class DisplayManager:
     Supports multiple display backends and content types.
     """
 
-    def __init__(self, config: DisplayConfig, simulation_mode: bool = True):
+    def __init__(self, config: DisplayConfig, simulation_mode: bool = True, real_3d: bool = False):
         self.config = config
         self.simulation_mode = simulation_mode
+        self.real_3d = real_3d
         self.backend: Optional[DisplayBackend] = None
 
     def initialize(self) -> bool:
         """Initialize display backend."""
-        if self.simulation_mode:
+        if self.real_3d:
+            # Try real 3D display (pyglet + trimesh)
+            self.backend = Real3DDisplayBackend(self.config)
+        elif self.simulation_mode:
             self.backend = SimulationDisplayBackend(self.config)
         else:
-            # Try real display backends
+            # Try Looking Glass SDK
             self.backend = LookingGlassDisplayBackend(self.config)
 
         return self.backend.initialize()
