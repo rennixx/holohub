@@ -107,4 +107,13 @@ export const devicesApi = {
     const response = await apiClient.post(`/api/v1/devices/${id}/playlists`, { playlist_id: playlistId });
     return response.data;
   },
+
+  /**
+   * Regenerate device secret
+   * Returns the new secret - this is the only time it will be shown
+   */
+  regenerateSecret: async (id: string): Promise<{ device: Device; device_secret: string }> => {
+    const response = await apiClient.post<{ device: Device; device_secret: string }>(`/api/v1/devices/${id}/regenerate-secret`);
+    return response.data;
+  },
 };

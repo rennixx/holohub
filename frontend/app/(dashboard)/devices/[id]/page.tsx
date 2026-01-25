@@ -16,11 +16,22 @@ import {
 import { DeviceStatusBadge, DeviceCommandPanel } from "@/components/devices";
 import { devicesApi, playlistsApi } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowLeft, MapPin, Cpu, ListVideo, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Cpu, ListVideo, Loader2, Key, RefreshCw, Copy, Check } from "lucide-react";
 import Link from "next/link";
 import { Device } from "@/types";
 import { toast } from "sonner";
 import { useState } from "react";
+
+// Import Dialog components
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export default function DeviceDetailPage() {
   const params = useParams();

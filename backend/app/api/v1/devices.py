@@ -467,6 +467,67 @@ async def delete_device(
     await db.commit()
 
 
+@router.post("/{device_id}/regenerate-secret", response_model=DeviceRegistrationResponse)
+async def regenerate_device_secret(
+    device_id: str,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> DeviceRegistrationResponse:
+    """
+    Regenerate a device's secret.
+
+    Returns the new device secret. This is the only time the secret will be shown.
+    Save it securely - it cannot be retrieved again.
+    """
+    try:
+        device_uuid = pyUUID(device_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid device ID")
+
+    result = await db.execute(
+        select(Device).where(
+            Device.id == device_uuid,
+            Device.organization_id == current_user.organization_id,
+            Device.deleted_at.is_(None),
+        )
+    )
+    device = result.scalar_one_or_none()
+
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Generate a new device secret
+    device_secret = secrets.token_urlsafe(32)
+    device.device_secret_hash = hash_device_secret(device_secret)
+
+    await db.commit()
+    await db.refresh(device)
+
+    device_response = DeviceResponse(
+        id=str(device.id),
+        name=device.name,
+        hardware_type=device.hardware_type,
+        hardware_id=device.hardware_id,
+        status=device.status,
+        last_heartbeat=device.last_heartbeat.isoformat() if device.last_heartbeat else None,
+        location_metadata=device.location_metadata,
+        tags=device.tags,
+        display_config=device.display_config,
+        network_info=device.network_info,
+        firmware_version=device.firmware_version,
+        client_version=device.client_version,
+        current_playlist_id=str(device.current_playlist_id) if device.current_playlist_id else None,
+        organization_id=str(device.organization_id),
+        created_at=device.created_at.isoformat() + "Z",
+        updated_at=device.updated_at.isoformat() + "Z",
+    )
+
+    return DeviceRegistrationResponse(
+        device=device_response,
+        device_secret=device_secret,
+    )
+
+
 @router.post("/{device_id}/command", response_model=dict)
 async def send_device_command(
     device_id: str,
