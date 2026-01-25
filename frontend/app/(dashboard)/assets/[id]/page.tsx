@@ -102,6 +102,16 @@ export default function AssetDetailPage() {
     ? `${process.env.NEXT_PUBLIC_S3_ENDPOINT}/${process.env.NEXT_PUBLIC_S3_BUCKET}/${asset.outputs.thumbnail.file_path}`
     : null;
 
+  // Map backend status to frontend ProcessingStatus
+  const displayStatus = mapStatusToProcessing(asset.processing_status);
+
+  // Determine if we can show the 3D preview
+  const canShow3D = displayStatus === ProcessingStatus.COMPLETED;
+  const hasProcessedOutput = asset.outputs?.optimized_glb;
+  const previewUrl = hasProcessedOutput
+    ? `${process.env.NEXT_PUBLIC_S3_ENDPOINT}/${process.env.NEXT_PUBLIC_S3_BUCKET}/${asset.outputs.optimized_glb.file_path}`
+    : fileUrl;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -126,7 +136,7 @@ export default function AssetDetailPage() {
               Edit
             </Button>
           </Link>
-          {asset.processing_status === ProcessingStatus.FAILED && (
+          {displayStatus === ProcessingStatus.FAILED && (
             <Button variant="outline" onClick={handleReprocess}>
               Reprocess
             </Button>
@@ -143,18 +153,18 @@ export default function AssetDetailPage() {
         <Card>
           <CardContent className="p-0">
             <div className="aspect-square">
-              {asset.processing_status === ProcessingStatus.COMPLETED && asset.outputs?.optimized_glb ? (
-                <ThreeDPreview src={`${process.env.NEXT_PUBLIC_S3_ENDPOINT}/${process.env.NEXT_PUBLIC_S3_BUCKET}/${asset.outputs.optimized_glb.file_path}`} />
+              {canShow3D ? (
+                <ThreeDPreview src={previewUrl} />
               ) : (
                 <div className="flex items-center justify-center h-full bg-muted">
                   <div className="text-center">
-                    <Badge className={cn("mb-2", statusColors[asset.processing_status])}>
-                      {asset.processing_status}
+                    <Badge className={cn("mb-2", statusColors[displayStatus])}>
+                      {displayStatus}
                     </Badge>
                     <p className="text-sm text-muted-foreground">
-                      {asset.processing_status === ProcessingStatus.PROCESSING
+                      {displayStatus === ProcessingStatus.PROCESSING
                         ? "Your 3D model is being processed..."
-                        : asset.processing_status === ProcessingStatus.FAILED
+                        : displayStatus === ProcessingStatus.FAILED
                         ? asset.processing_error || "Processing failed"
                         : "Waiting to be processed..."}
                     </p>
@@ -180,8 +190,8 @@ export default function AssetDetailPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge className={cn("text-white", statusColors[asset.processing_status])}>
-                    {asset.processing_status}
+                  <Badge className={cn("text-white", statusColors[displayStatus])}>
+                    {displayStatus}
                   </Badge>
                 </div>
                 <div>
