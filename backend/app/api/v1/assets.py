@@ -244,8 +244,8 @@ async def get_asset(
         sha256_hash=None,
         uploaded_by=str(asset.created_by_id) if asset.created_by_id else "",
         organization_id=str(asset.organization_id),
-        created_at=asset.created_at.isoformat(),
-        updated_at=asset.updated_at.isoformat(),
+        created_at=asset.created_at.isoformat() + "Z",
+        updated_at=asset.updated_at.isoformat() + "Z",
     )
 
 
@@ -291,8 +291,8 @@ async def create_asset(
         sha256_hash=None,
         uploaded_by=str(asset.created_by_id) if asset.created_by_id else "",
         organization_id=str(asset.organization_id),
-        created_at=asset.created_at.isoformat(),
-        updated_at=asset.updated_at.isoformat(),
+        created_at=asset.created_at.isoformat() + "Z",
+        updated_at=asset.updated_at.isoformat() + "Z",
     )
 
 
@@ -353,8 +353,8 @@ async def update_asset(
         sha256_hash=None,
         uploaded_by=str(asset.created_by_id) if asset.created_by_id else "",
         organization_id=str(asset.organization_id),
-        created_at=asset.created_at.isoformat(),
-        updated_at=asset.updated_at.isoformat(),
+        created_at=asset.created_at.isoformat() + "Z",
+        updated_at=asset.updated_at.isoformat() + "Z",
     )
 
 
@@ -549,8 +549,8 @@ async def confirm_upload(
         sha256_hash=None,
         uploaded_by=str(asset.created_by_id) if asset.created_by_id else "",
         organization_id=str(asset.organization_id),
-        created_at=asset.created_at.isoformat(),
-        updated_at=asset.updated_at.isoformat(),
+        created_at=asset.created_at.isoformat() + "Z",
+        updated_at=asset.updated_at.isoformat() + "Z",
     )
 
 
@@ -644,6 +644,6 @@ async def upload_asset_direct(
         sha256_hash=None,
         uploaded_by=str(asset.created_by_id) if asset.created_by_id else "",
         organization_id=str(asset.organization_id),
-        created_at=asset.created_at.isoformat(),
-        updated_at=asset.updated_at.isoformat(),
+        created_at=asset.created_at.isoformat() + "Z",
+        updated_at=asset.updated_at.isoformat() + "Z",
     )
