@@ -61,6 +61,13 @@ class DeviceResponse(BaseModel):
     updated_at: str
 
 
+class DeviceRegistrationResponse(BaseModel):
+    """Response for device registration including the device secret."""
+
+    device: DeviceResponse
+    device_secret: str = Field(..., description="Store this securely - needed for device authentication")
+
+
 class DeviceCreate(BaseModel):
     """Schema for creating a device."""
 
@@ -262,12 +269,12 @@ async def get_device(
     )
 
 
-@router.post("", response_model=DeviceResponse, status_code=201)
+@router.post("", response_model=DeviceRegistrationResponse, status_code=201)
 async def create_device(
     data: DeviceCreate,
     current_user: CurrentUser,
     db: DBSession,
-) -> DeviceResponse:
+) -> DeviceRegistrationResponse:
     """Register a new device."""
     # Check if hardware_id already exists
     existing = await db.execute(
@@ -299,7 +306,7 @@ async def create_device(
     await db.commit()
     await db.refresh(device)
 
-    return DeviceResponse(
+    device_response = DeviceResponse(
         id=str(device.id),
         name=device.name,
         hardware_type=device.hardware_type,
@@ -316,6 +323,11 @@ async def create_device(
         organization_id=str(device.organization_id),
         created_at=device.created_at.isoformat() + "Z",
         updated_at=device.updated_at.isoformat() + "Z",
+    )
+
+    return DeviceRegistrationResponse(
+        device=device_response,
+        device_secret=device_secret,
     )
 
 
