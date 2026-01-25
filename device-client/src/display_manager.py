@@ -312,6 +312,9 @@ class Real3DDisplayBackend(DisplayBackend):
 
                 glClearColor(0.1, 0.1, 0.1, 1.0)
 
+                # Set up the draw handler for rendering
+                self._window.on_draw = self._render_scene
+
                 self._initialized = True
                 logger.info("3D display window initialized successfully")
 
@@ -359,7 +362,9 @@ class Real3DDisplayBackend(DisplayBackend):
 
             # If using window mode, start rendering
             if self._window is not None:
-                self._start_rendering()
+                # Get display duration (max 60 seconds for 3D rendering)
+                display_duration = min(content.duration or 10, 60)
+                self._start_rendering(duration=display_duration)
             else:
                 # Viewer mode - just show and wait
                 logger.info(f"Displaying model: {content.asset_id}")
@@ -395,10 +400,30 @@ class Real3DDisplayBackend(DisplayBackend):
 
         return scene
 
-    def _start_rendering(self):
-        """Start the rendering loop."""
+    def _start_rendering(self, duration: Optional[int] = None):
+        """
+        Start the rendering loop for a specified duration.
+
+        Args:
+            duration: Duration in seconds to render. If None, runs indefinitely.
+        """
         import pyglet
-        pyglet.app.run()
+
+        if duration is None:
+            # Run indefinitely
+            pyglet.app.run()
+        else:
+            # Run for specified duration using clock tick
+            start_time = pyglet.clock.time()
+
+            def update(dt):
+                elapsed = pyglet.clock.time() - start_time
+                if elapsed >= duration:
+                    pyglet.app.exit()
+
+            # Schedule update and run
+            pyglet.clock.schedule_interval(update, 0.1)
+            pyglet.app.run()
 
     def _render_scene(self):
         """Render the current scene (called by pyglet)."""
