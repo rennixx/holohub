@@ -416,7 +416,9 @@ class Real3DDisplayBackend(DisplayBackend):
         Args:
             duration: Duration in seconds to render. If None, runs indefinitely.
         """
-        import pyglet
+        if not PYGLET_AVAILABLE:
+            logger.error("pyglet not available for rendering")
+            return
 
         if duration is None:
             # Run indefinitely
