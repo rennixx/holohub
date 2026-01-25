@@ -392,19 +392,23 @@ class Real3DDisplayBackend(DisplayBackend):
 
     def _normalize_scene(self, scene):
         """Center and scale scene for display."""
+        import numpy as np
         import trimesh
 
-        # Get scene bounds
+        # Get scene bounds - returns numpy array with shape (2, 3)
+        # bounds[0] is min, bounds[1] is max
         bounds = scene.bounds
-        if bounds is not None and not bounds.is_empty:
+        if bounds is not None and bounds.shape == (2, 3):
+            # Calculate centroid (center of bounds)
+            centroid = (bounds[0] + bounds[1]) / 2
+
             # Center the scene
-            centroid = bounds.centroid
             for geom in scene.geometry.values():
                 geom.apply_translation(-centroid[0], -centroid[1], -centroid[2])
 
             # Scale to fit in view
-            extents = bounds.extents
-            max_extent = max(extents)
+            extents = bounds[1] - bounds[0]  # Size along each axis
+            max_extent = float(np.max(extents))
             if max_extent > 0:
                 scale = 1.5 / max_extent  # Make it fill about 75% of view
                 for geom in scene.geometry.values():
