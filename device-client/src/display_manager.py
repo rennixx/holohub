@@ -372,18 +372,8 @@ class Real3DDisplayBackend(DisplayBackend):
             self._scene = scene
             self.current_content = content
 
-            # If using window mode, start rendering
-            if self._window is not None:
-                # Get display duration (max 60 seconds for 3D rendering)
-                display_duration = min(content.duration or 10, 60)
-                self._start_rendering(duration=display_duration)
-            else:
-                # Viewer mode - just show and wait
-                logger.info(f"Displaying model: {content.asset_id}")
-                if content.duration:
-                    import time
-                    time.sleep(min(content.duration, 10))
-
+            # The main loop handles rendering - no need to start separate event loop
+            logger.info(f"Model loaded: {content.asset_id}")
             return True
 
         except Exception as e:
