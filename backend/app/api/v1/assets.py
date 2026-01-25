@@ -648,3 +648,64 @@ async def upload_asset_direct(
         created_at=asset.created_at.isoformat() + "Z",
         updated_at=asset.updated_at.isoformat() + "Z",
     )
+
+
+# =============================================================================
+# Download Endpoints
+# =============================================================================
+@router.get("/download/{file_path:path}")
+async def download_asset(
+    file_path: str,
+    db: DBSession,
+) -> StreamingResponse:
+    """
+    Download an asset file from S3/MinIO storage.
+
+    This endpoint is used by devices to download content for playback.
+    The file_path is the S3 key stored in the asset record.
+    """
+    # Verify the file exists
+    result = await db.execute(
+        select(Asset).where(
+            Asset.file_path == file_path,
+            Asset.deleted_at.is_(None),
+        )
+    )
+    asset = result.scalar_one_or_none()
+
+    if not asset:
+        raise HTTPException(status_code=404, detail="Asset file not found")
+
+    # Generate presigned URL for download
+    s3_client = _get_s3_client()
+    try:
+        # Get the object from S3
+        response = s3_client.get_object(Bucket=settings.s3_bucket, Key=file_path)
+
+        # Stream the file content
+        def iterfile():
+            yield from response["Body"].iter_chunks()
+
+        # Determine content type
+        filename = file_path.split("/")[-1]
+        file_ext = os.path.splitext(filename)[1].lower()
+        content_type_map = {
+            ".glb": "model/gltf-binary",
+            ".gltf": "model/gltf+json",
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".mp4": "video/mp4",
+        }
+        content_type = content_type_map.get(file_ext, "application/octet-stream")
+
+        return StreamingResponse(
+            iterfile(),
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Length": str(response["ContentLength"]),
+            },
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to download file: {str(e)}")
