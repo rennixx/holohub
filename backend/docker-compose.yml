@@ -50,6 +50,11 @@ services:
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_CORS_ALLOW_ORIGIN: "*"
+      MINIO_CORS_ALLOW_METHODS: "GET,POST,PUT,DELETE,HEAD,OPTIONS"
+      MINIO_CORS_ALLOW_HEADERS: "*"
+      MINIO_CORS_EXPOSE_HEADERS: "ETag"
+      MINIO_CORS_MAX_AGE: "3600"
     ports:
       - "9000:9000"
       - "9001:9001"
