@@ -529,3 +529,89 @@ async def confirm_upload(
         created_at=asset.created_at.isoformat(),
         updated_at=asset.updated_at.isoformat(),
     )
+
+
+@router.post("/upload/direct", response_model=AssetResponse)
+async def upload_asset_direct(
+    current_user: CurrentUser,
+    db: DBSession,
+    file: UploadFile = FastAPIFile(..., description="Asset file to upload"),
+    title: str = Query(..., description="Asset title"),
+    description: Optional[str] = Query(None, description="Asset description"),
+) -> AssetResponse:
+    """
+    Upload an asset directly through the backend.
+
+    This endpoint proxies the upload through the backend, avoiding CORS issues.
+    The file is uploaded to MinIO/S3 and an asset record is created.
+    """
+    # Validate file extension
+    filename = file.filename or "upload"
+    file_ext = os.path.splitext(filename)[1].lower()
+    if file_ext not in settings.allowed_extensions_list:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: {', '.join(settings.allowed_extensions_list)}",
+        )
+
+    # Read file content
+    content = await file.read()
+    file_size = len(content)
+
+    # Validate file size
+    max_size = settings.max_upload_size_mb * 1024 * 1024
+    if file_size > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large. Maximum size: {settings.max_upload_size_mb}MB",
+        )
+
+    # Generate unique file path
+    asset_id = uuid4()
+    file_path = f"assets/{current_user.organization_id}/{asset_id}/{filename}"
+
+    # Upload to MinIO/S3
+    s3_client = _get_s3_client()
+    try:
+        s3_client.put_object(
+            Bucket=settings.s3_bucket,
+            Key=file_path,
+            Body=io.BytesIO(content),
+            ContentType=file.content_type or "application/octet-stream",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
+
+    # Create asset record
+    file_format = file_ext.lstrip(".")
+    asset = Asset(
+        id=asset_id,
+        name=title,
+        description=description,
+        file_path=file_path,
+        file_size=file_size,
+        file_format=file_format,
+        status=AssetStatus.PROCESSING,
+        created_by_id=current_user.id,
+        organization_id=current_user.organization_id,
+    )
+
+    db.add(asset)
+    await db.commit()
+    await db.refresh(asset)
+
+    return AssetResponse(
+        id=str(asset.id),
+        name=asset.name,
+        description=asset.description,
+        file_path=asset.file_path,
+        file_size=asset.file_size,
+        file_format=asset.file_format,
+        status=asset.status,
+        thumbnail_url=asset.thumbnail_url,
+        metadata=asset.asset_metadata,
+        created_by_id=str(asset.created_by_id) if asset.created_by_id else None,
+        organization_id=str(asset.organization_id),
+        created_at=asset.created_at.isoformat(),
+        updated_at=asset.updated_at.isoformat(),
+    )
