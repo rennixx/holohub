@@ -106,7 +106,7 @@ export default function EditPlaylistPage() {
     );
   }
 
-  const readyAssets = assets?.filter((a) => a.processing_status === "completed") || [];
+  const readyAssets = assets?.filter((a) => a.processing_status === "ready") || [];
 
   return (
     <div className="space-y-6">
