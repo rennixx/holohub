@@ -79,7 +79,19 @@ services:
       mc mb minio/holohub-dev --ignore-existing &&
       mc mb minio/holohub-test --ignore-existing &&
       mc anonymous set download minio/holohub-dev &&
-      echo 'MinIO buckets created successfully'
+      echo '{
+        \"CORSRules\": [
+          {
+            \"AllowedOrigins\": [\"http://localhost:3000\", \"http://localhost:5173\", \"http://localhost:8000\"],
+            \"AllowedMethods\": [\"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\"],
+            \"AllowedHeaders\": [\"*\"],
+            \"ExposeHeaders\": [\"ETag\"],
+            \"MaxAgeSeconds\": 3600
+          }
+        ]
+      }' > /tmp/cors.json &&
+      mc admin set cors minio /tmp/cors.json &&
+      echo 'MinIO buckets and CORS configured successfully'
       "
     networks:
       - holohub-network
