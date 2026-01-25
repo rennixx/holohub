@@ -236,11 +236,11 @@ class DeviceAPIClient:
         progress_callback: Optional[callable] = None,
     ) -> Path:
         """
-        Download content file from S3/storage.
+        Download content file from backend.
 
         Args:
-            file_path: S3 file path
-            destination: Destination directory
+            file_path: File path (S3 key or storage path)
+            destination: Destination file path
             progress_callback: Optional callback for download progress
 
         Returns:
@@ -251,11 +251,7 @@ class DeviceAPIClient:
         """
         self.ensure_authenticated()
 
-        # Get S3 endpoint and bucket from environment or device info
-        device_info = self.get_device_info()
-        # Assuming S3 URL format: {endpoint}/{bucket}/{file_path}
-        # This would need to be adapted based on actual storage configuration
-
+        # Construct download URL
         url = f"{self.api_base_url}/api/v1/assets/download/{file_path}"
 
         destination.parent.mkdir(parents=True, exist_ok=True)
