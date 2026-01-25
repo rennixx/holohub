@@ -306,12 +306,41 @@ class DeviceClient:
                 logger.error("Display initialization failed. Exiting.")
                 return
 
-            # Step 3: Get assigned playlist
-            playlist = self.get_assigned_playlist()
+            # Step 3: Get assigned playlist using playlist fetcher
+            device_id = self.api_client.device_id  # type: ignore
+            playlist = self.playlist_fetcher.fetch_assigned_playlist(device_id)
             if not playlist:
                 logger.warning("No playlist assigned. Device will run in idle mode.")
                 # Could show default content here
                 return
+
+            # Convert Playlist dataclass to dict for compatibility
+            playlist_dict = {
+                "id": playlist.id,
+                "name": playlist.name,
+                "description": playlist.description,
+                "loop_mode": playlist.loop_mode,
+                "shuffle": playlist.shuffle,
+                "transition_type": playlist.transition_type,
+                "transition_duration_ms": playlist.transition_duration_ms,
+                "is_active": playlist.is_active,
+                "total_duration_sec": playlist.total_duration_sec,
+                "item_count": playlist.item_count,
+                "items": [
+                    {
+                        "id": item.id,
+                        "asset_id": item.asset_id,
+                        "position": item.position,
+                        "duration_seconds": item.duration_seconds,
+                        "asset_file_path": item.asset_file_path,
+                        "asset_file_size": item.asset_file_size,
+                        "asset_mime_type": item.asset_mime_type,
+                        "custom_settings": item.custom_settings,
+                        "transition_override": item.transition_override,
+                    }
+                    for item in playlist.items
+                ],
+            }
 
             # Step 4: Download content
             if not self.download_playlist_content(playlist):
