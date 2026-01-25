@@ -250,7 +250,12 @@ class DeviceClient:
             while self._running:
                 # Get current item (loop around)
                 item = items[self._current_item_index]
-                self.display_playlist_item(item)
+                success = self.display_playlist_item(item)
+
+                # If display failed, wait a bit before retry to prevent tight loop
+                if not success:
+                    logger.warning("Display failed, waiting 1 second before retry...")
+                    time.sleep(1)
 
                 # Move to next item
                 self._current_item_index = (self._current_item_index + 1) % len(items)
