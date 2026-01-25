@@ -374,6 +374,13 @@ class Real3DDisplayBackend(DisplayBackend):
                 logger.info(f"    - {name}: {len(geom.vertices)} vertices, {len(geom.faces)} faces")
                 if hasattr(geom, 'visual') and geom.visual:
                     logger.info(f"      Visual: {type(geom.visual).__name__}")
+                    if hasattr(geom.visual, 'material') and geom.visual.material:
+                        mat = geom.visual.material
+                        logger.info(f"      Material: {type(mat).__name__}")
+                        if hasattr(mat, 'diffuse'):
+                            logger.info(f"      diffuse: {mat.diffuse}")
+                        if hasattr(mat, 'colors'):
+                            logger.info(f"      colors: {mat.colors}")
                     if hasattr(geom.visual, 'face_colors'):
                         fc = geom.visual.face_colors
                         logger.info(f"      face_colors: shape={fc.shape if hasattr(fc, 'shape') else 'N/A'}")
@@ -476,16 +483,31 @@ class Real3DDisplayBackend(DisplayBackend):
             glRotatef(30, 1, 0, 0)  # Tilt down a bit
 
             # Get geometry from scene and render each mesh
-            face_count = 0
-            for geom in self._scene.geometry.values():
+            for mesh_idx, geom in enumerate(self._scene.geometry.values()):
                 vertices = geom.vertices
                 faces = geom.faces
 
-                # Get colors from visual or use default orange color
+                # Get colors from visual or use default colors
                 use_default_color = False
+                mesh_color = None
+
                 if hasattr(geom, 'visual') and geom.visual:
-                    if hasattr(geom.visual, 'face_colors') and geom.visual.face_colors is not None:
+                    # Try to get diffuse color from material
+                    if hasattr(geom.visual, 'material') and geom.visual.material:
+                        mat = geom.visual.material
+                        # Check for diffuse color in material
+                        if hasattr(mat, 'diffuse') and mat.diffuse is not None:
+                            diffuse = mat.diffuse
+                            if isinstance(diffuse, (list, tuple, np.ndarray)) and len(diffuse) >= 3:
+                                mesh_color = np.array(diffuse[:3])
+                                logger.debug(f"Using diffuse color: {mesh_color}")
+
+                    # Fall back to face_colors if available
+                    if mesh_color is None and hasattr(geom.visual, 'face_colors') and geom.visual.face_colors is not None:
                         colors = geom.visual.face_colors
+                    elif mesh_color is not None:
+                        # Use mesh color for all faces
+                        colors = np.tile(mesh_color, (len(faces), 1))
                     elif hasattr(geom.visual, 'main_color') and geom.visual.main_color is not None:
                         # Use main color for all faces
                         main_color = geom.visual.main_color
@@ -496,8 +518,11 @@ class Real3DDisplayBackend(DisplayBackend):
                     use_default_color = True
 
                 if use_default_color:
-                    # Default orange color for visibility
-                    colors = np.ones((len(faces), 3), dtype=np.float32) * [1.0, 0.6, 0.2]
+                    # Use different colors for different meshes for visual distinction
+                    hue = (mesh_idx * 0.2) % 1.0  # Different hue for each mesh
+                    import colorsys
+                    rgb = colorsys.hsv_to_rgb(hue, 0.6, 0.7)  # HSV to RGB
+                    colors = np.ones((len(faces), 3), dtype=np.float32) * list(rgb)
 
                 # Enable depth testing
                 glEnable(GL_DEPTH_TEST)
@@ -515,9 +540,9 @@ class Real3DDisplayBackend(DisplayBackend):
                         if len(c) >= 3:
                             glColor3f(c[0], c[1], c[2])
                         else:
-                            glColor3f(1.0, 0.6, 0.2)
+                            glColor3f(0.8, 0.8, 0.8)
                     else:
-                        glColor3f(1.0, 0.6, 0.2)
+                        glColor3f(0.8, 0.8, 0.8)
 
                     # Draw triangle
                     glBegin(GL_TRIANGLES)
@@ -526,7 +551,6 @@ class Real3DDisplayBackend(DisplayBackend):
                     glVertex3f(v1[0], v1[1], v1[2])
                     glVertex3f(v2[0], v2[1], v2[2])
                     glEnd()
-                    face_count += 1
 
             self._rotation += 0.5
 
