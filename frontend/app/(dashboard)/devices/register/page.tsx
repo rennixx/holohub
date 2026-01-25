@@ -21,10 +21,11 @@ import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const HARDWARE_TYPES = [
-  { value: "holoplayer-pro", label: "HoloPlayer Pro" },
-  { value: "holoplayer-mini", label: "HoloPlayer Mini" },
-  { value: "holoplayer-raspberry", label: "HoloPlayer Raspberry" },
-  { value: "custom-device", label: "Custom Device" },
+  { value: "looking_glass_portrait", label: "Looking Glass Portrait" },
+  { value: "looking_glass_65", label: "Looking Glass 65 inch" },
+  { value: "looking_glass_32", label: "Looking Glass 32 inch" },
+  { value: "looking_glass_16", label: "Looking Glass 16 inch" },
+  { value: "looking_glass_8", label: "Looking Glass 8 inch" },
 ];
 
 interface FormData {
