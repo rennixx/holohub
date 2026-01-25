@@ -372,24 +372,62 @@ class DeviceClient:
                 logger.error("Failed to download playlist content")
                 return
 
-            # Step 5: Start heartbeat loop
+            # Step 5: Start main loop with pyglet
             logger.info("Starting main loop...")
 
-            # Run playlist in separate thread
-            import threading
-            playlist_thread = threading.Thread(
-                target=self.execute_playlist,
-                args=(playlist_dict,),
-                daemon=True,
-            )
-            playlist_thread.start()
+            # Import pyglet for event handling
+            import pyglet
 
-            # Heartbeat loop in main thread
+            # Track current playlist state
+            playlist_dict["current_item_idx"] = 0
+            last_item_time = 0
+            last_heartbeat_time = 0
+
+            # Get first item duration
+            first_item = playlist_dict["items"][0]
+            current_duration = first_item.get("duration_seconds", 10)
+
+            # Main event loop - run in main thread for pyglet
+            import time as time_module
+            start_time = time_module.time()
+
             while self._running:
-                self.send_heartbeat()
+                current_time = time_module.time()
 
-                # Calculate sleep time (send heartbeat more frequently than interval)
-                time.sleep(self.config.heartbeat_interval)
+                # Check if we need to switch to next playlist item
+                if current_time - last_item_time >= current_duration:
+                    # Move to next item
+                    playlist_dict["current_item_idx"] = (
+                        playlist_dict["current_item_idx"] + 1
+                    ) % len(playlist_dict["items"])
+
+                    item = playlist_dict["items"][playlist_dict["current_item_idx"]]
+                    current_duration = item.get("duration_seconds", 10)
+                    last_item_time = current_time
+
+                    # Display new item
+                    logger.info(f"Displaying: {item.get('asset_id')} ({current_duration}s)")
+                    self.display_playlist_item(item)
+
+                # Send heartbeat periodically
+                if current_time - last_heartbeat_time >= self.config.heartbeat_interval:
+                    self.send_heartbeat()
+                    last_heartbeat_time = current_time
+
+                # Dispatch pyglet events to keep window responsive
+                if self.display and self.display.backend and self.display.backend._window:
+                    # Force redraw and dispatch events
+                    try:
+                        pyglet.clock.tick()
+                        for window in pyglet.app.windows:
+                            window.switch_to()
+                            window.dispatch_events()
+                            window.dispatch_event(pyglet.window.Event(pyglet.window.EVENT_TYPE_EXPOSE))
+                    except Exception as e:
+                        logger.debug(f"Pyglet event dispatch error: {e}")
+
+                # Small sleep to prevent CPU spinning
+                time_module.sleep(0.016)  # ~60 FPS
 
         except Exception as e:
             logger.error(f"Client error: {e}", exc_info=True)
