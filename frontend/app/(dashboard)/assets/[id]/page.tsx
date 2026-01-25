@@ -188,7 +188,7 @@ export default function AssetDetailPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">SHA-256</p>
-                  <p className="font-medium text-xs font-mono">{asset.sha256_hash.slice(0, 16)}...</p>
+                  <p className="font-medium text-xs font-mono">{asset.sha256_hash ? asset.sha256_hash.slice(0, 16) + "..." : "N/A"}</p>
                 </div>
               </div>
 
