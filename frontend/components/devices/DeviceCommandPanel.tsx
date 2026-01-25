@@ -14,16 +14,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RefreshCw, Trash2, Image, ListMusic } from "lucide-react";
 import { toast } from "sonner";
+import { devicesApi } from "@/lib/api";
 
 interface DeviceCommandPanelProps {
   deviceId: string;
   onCommandSent?: () => void;
 }
 
-type Command = "restart" | "clear_cache" | "screenshot" | "update_playlist";
+type Command = "refresh" | "reboot" | "clear_cache" | "screenshot" | "update_playlist";
 
 export function DeviceCommandPanel({ deviceId, onCommandSent }: DeviceCommandPanelProps) {
-  const [command, setCommand] = useState<Command>("restart");
+  const [command, setCommand] = useState<Command>("refresh");
   const [playlistId, setPlaylistId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,23 +32,17 @@ export function DeviceCommandPanel({ deviceId, onCommandSent }: DeviceCommandPan
     setIsLoading(true);
 
     try {
-      let params = {};
+      let parameters = {};
       if (command === "update_playlist") {
         if (!playlistId) {
           toast.error("Please enter a playlist ID");
           setIsLoading(false);
           return;
         }
-        params = { playlist_id: playlistId };
+        parameters = { playlist_id: playlistId };
       }
 
-      const response = await fetch(`/api/devices/${deviceId}/command`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ command, params }),
-      });
-
-      if (!response.ok) throw new Error("Failed to send command");
+      await devicesApi.sendCommand(deviceId, { command, parameters });
 
       toast.success("Command sent successfully");
       onCommandSent?.();
