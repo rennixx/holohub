@@ -103,24 +103,35 @@ export interface NetworkInfo {
 
 export interface Device extends UUIDModel, TimestampModel {
   name: string;
-  serial_number: string;
+  hardware_type: string;
+  hardware_id: string;
   organization_id: string;
   status: DeviceStatus;
-  hardware_id: string;
-  display_config: DisplayConfig;
-  network_info?: NetworkInfo;
-  location?: string;
+  location_metadata: Record<string, unknown>;
+  tags: string[];
+  display_config: Record<string, unknown>;
+  network_info: Record<string, unknown>;
+  firmware_version?: string;
+  client_version?: string;
+  current_playlist_id?: string;
   last_heartbeat?: string;
 }
 
 export interface DeviceHeartbeat {
+  time: string;
   device_id: string;
-  timestamp: string;
-  cpu_percent: number;
-  memory_percent: number;
-  disk_percent: number;
+  cpu_usage_percent?: number;
+  memory_usage_percent?: number;
+  storage_used_gb?: number;
   temperature_celsius?: number;
-  uptime_seconds: number;
+  bandwidth_mbps?: number;
+  latency_ms?: number;
+  packet_loss_percent?: number;
+  current_playlist_id?: string;
+  current_asset_id?: string;
+  playback_position_sec?: number;
+  error_count: number;
+  last_error?: string;
 }
 
 // ============================================================================

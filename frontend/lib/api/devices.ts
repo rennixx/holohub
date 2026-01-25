@@ -41,9 +41,10 @@ export const devicesApi = {
    */
   register: async (data: {
     name: string;
-    serial_number: string;
+    hardware_type: string;
     hardware_id: string;
-    location?: string;
+    location_metadata?: Record<string, unknown>;
+    tags?: string[];
   }): Promise<Device> => {
     const response = await apiClient.post<Device>("/api/v1/devices", data);
     return response.data;
@@ -54,7 +55,7 @@ export const devicesApi = {
    */
   update: async (
     id: string,
-    data: Partial<Pick<Device, "name" | "location" | "display_config" | "network_info">>
+    data: Partial<Pick<Device, "name" | "status" | "location_metadata" | "tags" | "display_config">>
   ): Promise<Device> => {
     const response = await apiClient.patch<Device>(`/api/v1/devices/${id}`, data);
     return response.data;
