@@ -17,6 +17,31 @@ import { MoreHorizontal } from "lucide-react";
 
 interface DeviceTableProps {
   devices: Device[];
+  isLoading?: boolean;
+  onCommand?: (id: string, command: string) => void;
+}
+
+// Loading skeleton
+function TableSkeleton() {
+  return (
+    <>
+      {[...Array(5)].map((_, i) => (
+        <TableRow key={i}>
+          <TableCell><div className="h-4 w-24 animate-pulse bg-muted rounded" /></TableCell>
+          <TableCell><div className="h-4 w-32 animate-pulse bg-muted rounded" /></TableCell>
+          <TableCell><div className="h-6 w-16 animate-pulse bg-muted rounded" /></TableCell>
+          <TableCell><div className="h-4 w-20 animate-pulse bg-muted rounded" /></TableCell>
+          <TableCell><div className="h-4 w-24 animate-pulse bg-muted rounded" /></TableCell>
+          <TableCell><div className="h-8 w-8 animate-pulse bg-muted rounded" /></TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
+interface DeviceTableProps {
+  devices: Device[];
+  isLoading?: boolean;
   onCommand?: (id: string, command: string) => void;
 }
 
