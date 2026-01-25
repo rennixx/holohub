@@ -307,7 +307,7 @@ class DeviceClient:
                 return
 
             # Step 3: Get assigned playlist using playlist fetcher
-            device_id = self.api_client.device_id  # type: ignore
+            device_id = self.api_client._token.device_id  # type: ignore
             playlist = self.playlist_fetcher.fetch_assigned_playlist(device_id)
             if not playlist:
                 logger.warning("No playlist assigned. Device will run in idle mode.")
