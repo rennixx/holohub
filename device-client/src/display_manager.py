@@ -329,7 +329,8 @@ class Real3DDisplayBackend(DisplayBackend):
                 self._window.on_draw = self._render_scene
 
                 self._initialized = True
-                logger.info("3D display window initialized successfully")
+                logger.info(f"3D display window initialized: {window_width}x{window_height}")
+                logger.info(f"  OpenGL context created, on_draw handler registered")
 
             except ImportError:
                 logger.warning("pyglet not available, using viewer mode")
@@ -443,18 +444,13 @@ class Real3DDisplayBackend(DisplayBackend):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         if self._scene is not None and self._window is not None:
-            # Use pyglet's graphics for simpler rendering
-            batch = pyglet.graphics.Batch()
-
             # Set up simple camera
             glMatrixMode(GL_PROJECTION)
             glLoadIdentity()
-            from pyglet.gl import gluPerspective
             gluPerspective(45, (self._window.width / self._window.height), 0.1, 100.0)
 
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
-            from pyglet.gl import gluLookAt
             gluLookAt(0, 0, 3,  # Eye
                       0, 0, 0,   # Target
                       0, 1, 0)    # Up
@@ -464,6 +460,7 @@ class Real3DDisplayBackend(DisplayBackend):
             glRotatef(30, 1, 0, 0)  # Tilt down a bit
 
             # Get geometry from scene and render each mesh
+            face_count = 0
             for geom in self._scene.geometry.values():
                 vertices = geom.vertices
                 faces = geom.faces
@@ -502,14 +499,11 @@ class Real3DDisplayBackend(DisplayBackend):
                     glVertex3f(v1[0], v1[1], v1[2])
                     glVertex3f(v2[0], v2[1], v2[2])
                     glEnd()
+                    face_count += 1
 
             self._rotation += 0.5
 
         glFlush()
-
-        # Flip the buffer to display the rendered content
-        if self._window is not None:
-            self._window.flip()
 
     def clear(self) -> None:
         """Clear display."""

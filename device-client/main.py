@@ -430,9 +430,10 @@ class DeviceClient:
                         for window in pyglet.app.windows:
                             window.switch_to()
                             window.dispatch_events()
-                            # Explicitly render the scene
+                            # Trigger render and flip buffer
                             if self.display.backend._scene is not None:
-                                self.display.backend._render_scene()
+                                window.on_draw()
+                                window.flip()
                     except Exception as e:
                         logger.debug(f"Pyglet event dispatch error: {e}")
 
