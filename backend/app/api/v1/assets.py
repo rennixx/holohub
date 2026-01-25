@@ -23,14 +23,20 @@ router = APIRouter()
 # =============================================================================
 # Schemas
 # =============================================================================
+class PaginationMeta(BaseModel):
+    """Pagination metadata matching frontend expectations."""
+
+    total: int
+    page: int
+    page_size: int
+    pages: int
+
+
 class AssetListResponse(BaseModel):
     """Paginated list of assets."""
 
     items: list[dict]
-    total: int
-    page: int
-    limit: int
-    total_pages: int
+    meta: PaginationMeta
 
 
 class AssetResponse(BaseModel):
@@ -148,10 +154,12 @@ async def list_assets(
 
     return AssetListResponse(
         items=items,
-        total=total,
-        page=page,
-        limit=limit,
-        total_pages=total_pages,
+        meta=PaginationMeta(
+            total=total,
+            page=page,
+            page_size=limit,
+            pages=total_pages,
+        ),
     )
 
 
