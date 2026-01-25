@@ -301,38 +301,27 @@ class Real3DDisplayBackend(DisplayBackend):
                 if not PYGLET_AVAILABLE:
                     raise ImportError("pyglet not available")
 
-                # Create window
+                # Create window with OpenGL config for compatibility profile
+                from pyglet.gl import Config
+                config = Config(
+                    double_buffer=True,
+                    depth_size=24,
+                    major_version=2,
+                    minor_version=1,
+                    forward_compatible=False,
+                )
+
                 window_width, window_height = self.config.resolution
                 self._window = pyglet.window.Window(
                     width=window_width,
                     height=window_height,
                     caption="HoloHub 3D Display",
                     resizable=False,
+                    config=config,
                 )
 
-                # Setup OpenGL basic state
+                # Setup basic OpenGL state
                 glEnable(GL_DEPTH_TEST)
-                glEnable(GL_LIGHTING)
-                glEnable(GL_LIGHT0)
-                glEnable(GL_COLOR_MATERIAL)
-                glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
-
-                # Set up lighting
-                glLightfv(GL_LIGHT0, GL_POSITION, (1.0, 1.0, 1.0, 0.0))
-                glLightfv(GL_LIGHT0, GL_AMBIENT, (0.2, 0.2, 0.2, 1.0))
-                glLightfv(GL_LIGHT0, GL_DIFFUSE, (0.8, 0.8, 0.8, 1.0))
-
-                # Set up projection
-                glMatrixMode(GL_PROJECTION)
-                glLoadIdentity()
-                gluPerspective(45, (window_width / window_height), 0.1, 100.0)
-
-                glMatrixMode(GL_MODELVIEW)
-                glLoadIdentity()
-                gluLookAt(0, 1.5, 3,  # Eye
-                          0, 0, 0,   # Target
-                          0, 1, 0)    # Up
-
                 glClearColor(0.1, 0.1, 0.1, 1.0)
 
                 # Set up the draw handler for rendering
