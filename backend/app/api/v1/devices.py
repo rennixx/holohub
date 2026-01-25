@@ -620,6 +620,7 @@ async def authenticate_device(
 async def device_heartbeat(
     device_id: str,
     data: HeartbeatRequest,
+    current_device: CurrentDevice,
     db: DBSession,
 ) -> HeartbeatResponse:
     """
@@ -627,25 +628,15 @@ async def device_heartbeat(
 
     Updates device status, last heartbeat time, and stores health metrics.
     Transitions device from PENDING to ACTIVE on first heartbeat.
+
+    Requires device authentication (device JWT token).
     """
-    try:
-        device_uuid = pyUUID(device_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid device ID")
-
-    result = await db.execute(
-        select(Device).where(
-            Device.id == device_uuid,
-            Device.deleted_at.is_(None),
-        )
-    )
-    device = result.scalar_one_or_none()
-
-    if not device:
-        raise HTTPException(status_code=404, detail="Device not found")
+    # Verify the device_id matches the authenticated device
+    if str(current_device.id) != device_id:
+        raise HTTPException(status_code=403, detail="Access denied: device ID mismatch")
 
     # Update device heartbeat using the model method
-    device.update_heartbeat(
+    current_device.update_heartbeat(
         cpu_percent=data.cpu_usage_percent,
         memory_percent=data.memory_usage_percent,
         storage_used=data.storage_used_gb,
@@ -659,9 +650,9 @@ async def device_heartbeat(
 
     # Update firmware/client versions if provided
     if data.firmware_version:
-        device.firmware_version = data.firmware_version
+        current_device.firmware_version = data.firmware_version
     if data.client_version:
-        device.client_version = data.client_version
+        current_device.client_version = data.client_version
 
     await db.commit()
 
@@ -670,15 +661,15 @@ async def device_heartbeat(
     # TODO: Implement DeviceHeartbeat model insertion
 
     status_message = "Device is active"
-    if device.status == DeviceStatus.ACTIVE:
+    if current_device.status == DeviceStatus.ACTIVE:
         status_message = "Heartbeat received, device is active"
-    elif device.status == DeviceStatus.PENDING:
+    elif current_device.status == DeviceStatus.PENDING:
         status_message = "Device activated successfully"
 
     return HeartbeatResponse(
-        status=device.status,
+        status=current_device.status,
         message=status_message,
-        device_id=str(device.id),
+        device_id=str(current_device.id),
     )
 
 
