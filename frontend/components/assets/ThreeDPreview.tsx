@@ -175,7 +175,7 @@ export function ThreeDPreviewMini({ src, className }: { src: string; className?:
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <Environment preset="sunset" />
-          <PerspectiveCamera makeDefault position={[0, 2, 5]} fov={50} />
+          <PerspectiveCamera makeDefault position={[0, 1.5, 3]} fov={50} />
           <OrbitControls enablePan={false} enableZoom={false} enableRotate={false} />
           <Model src={src} />
         </Suspense>
