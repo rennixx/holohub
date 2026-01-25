@@ -374,6 +374,12 @@ class Real3DDisplayBackend(DisplayBackend):
                 logger.info(f"    - {name}: {len(geom.vertices)} vertices, {len(geom.faces)} faces")
                 if hasattr(geom, 'visual') and geom.visual:
                     logger.info(f"      Visual: {type(geom.visual).__name__}")
+                    if hasattr(geom.visual, 'face_colors'):
+                        fc = geom.visual.face_colors
+                        logger.info(f"      face_colors: shape={fc.shape if hasattr(fc, 'shape') else 'N/A'}")
+                    if hasattr(geom.visual, 'main_color'):
+                        mc = geom.visual.main_color
+                        logger.info(f"      main_color: {mc}")
 
             # Center and scale the model
             scene = self._normalize_scene(scene)
@@ -472,12 +478,23 @@ class Real3DDisplayBackend(DisplayBackend):
                 vertices = geom.vertices
                 faces = geom.faces
 
-                # Check for visual properties
-                if hasattr(geom, 'visual') and hasattr(geom.visual, 'face_colors'):
-                    colors = geom.visual.face_colors
+                # Get colors from visual or use default orange color
+                use_default_color = False
+                if hasattr(geom, 'visual') and geom.visual:
+                    if hasattr(geom.visual, 'face_colors') and geom.visual.face_colors is not None:
+                        colors = geom.visual.face_colors
+                    elif hasattr(geom.visual, 'main_color') and geom.visual.main_color is not None:
+                        # Use main color for all faces
+                        main_color = geom.visual.main_color
+                        colors = np.tile(main_color[:3], (len(faces), 1))
+                    else:
+                        use_default_color = True
                 else:
-                    # Default white color for all faces
-                    colors = np.ones((len(faces), 3), dtype=np.float32)
+                    use_default_color = True
+
+                if use_default_color:
+                    # Default orange color for visibility
+                    colors = np.ones((len(faces), 3), dtype=np.float32) * [1.0, 0.6, 0.2]
 
                 # Enable depth testing
                 glEnable(GL_DEPTH_TEST)
@@ -489,15 +506,15 @@ class Real3DDisplayBackend(DisplayBackend):
                     v1 = vertices[face[1]]
                     v2 = vertices[face[2]]
 
-                    # Get face color (default to white)
+                    # Get face color
                     if i < len(colors):
                         c = colors[i]
                         if len(c) >= 3:
                             glColor3f(c[0], c[1], c[2])
                         else:
-                            glColor3f(1, 1, 1)
+                            glColor3f(1.0, 0.6, 0.2)
                     else:
-                        glColor3f(1, 1, 1)
+                        glColor3f(1.0, 0.6, 0.2)
 
                     # Draw triangle
                     glBegin(GL_TRIANGLES)
