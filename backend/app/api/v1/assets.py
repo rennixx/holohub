@@ -371,3 +371,157 @@ async def delete_asset(
     # Soft delete
     asset.soft_delete()
     await db.commit()
+
+
+# =============================================================================
+# Upload Endpoints
+# =============================================================================
+def _get_s3_client():
+    """Get S3 client for MinIO operations."""
+    s3_config = Config(
+        region_name=settings.s3_region,
+        signature_version="s3v4",
+    )
+    return boto3.client(
+        "s3",
+        endpoint_url=settings.s3_endpoint,
+        aws_access_key_id=settings.s3_access_key,
+        aws_secret_access_key=settings.s3_secret_key,
+        config=s3_config,
+    )
+
+
+@router.post("/upload/request", response_model=UploadRequestResponse)
+async def request_upload_url(
+    data: UploadRequestRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> UploadRequestResponse:
+    """
+    Request a presigned upload URL for a new asset.
+
+    Returns an upload ID and a presigned URL that can be used to upload
+    the file directly to MinIO/S3.
+    """
+    # Validate file extension
+    file_ext = os.path.splitext(data.filename)[1].lower()
+    if file_ext not in settings.allowed_extensions_list:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: {', '.join(settings.allowed_extensions_list)}",
+        )
+
+    # Validate file size
+    max_size = settings.max_upload_size_mb * 1024 * 1024
+    if data.file_size > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large. Maximum size: {settings.max_upload_size_mb}MB",
+        )
+
+    # Generate unique file path
+    asset_id = uuid4()
+    file_path = f"assets/{current_user.organization_id}/{asset_id}/{data.filename}"
+
+    # Create presigned URL for upload
+    s3_client = _get_s3_client()
+    try:
+        upload_url = s3_client.generate_presigned_url(
+            "put_object",
+            Params={
+                "Bucket": settings.s3_bucket,
+                "Key": file_path,
+                "ContentType": data.mime_type,
+            },
+            ExpiresIn=3600,  # 1 hour
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate upload URL: {str(e)}")
+
+    return UploadRequestResponse(
+        id=str(asset_id),
+        upload_url=upload_url,
+        file_path=file_path,
+    )
+
+
+@router.post("/upload/confirm", response_model=AssetResponse)
+async def confirm_upload(
+    data: UploadConfirmRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> AssetResponse:
+    """
+    Confirm an upload and create the asset record.
+
+    After uploading the file to MinIO/S3 using the presigned URL,
+    call this endpoint to create the asset record in the database.
+    """
+    try:
+        asset_id = pyUUID(data.upload_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid upload ID")
+
+    # Verify the file exists in MinIO
+    s3_client = _get_s3_client()
+    file_path = f"assets/{current_user.organization_id}/{asset_id}/"
+
+    try:
+        # List objects with the prefix to find the uploaded file
+        response = s3_client.list_objects_v2(
+            Bucket=settings.s3_bucket,
+            Prefix=file_path,
+            MaxKeys=1,
+        )
+
+        if "Contents" not in response or not response["Contents"]:
+            raise HTTPException(status_code=404, detail="File not found in storage")
+
+        s3_object = response["Contents"][0]
+        actual_file_path = s3_object["Key"]
+        file_size = s3_object["Size"]
+
+        # Extract file format from filename
+        filename = actual_file_path.split("/")[-1]
+        file_format = os.path.splitext(filename)[1].lstrip(".")
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+        raise HTTPException(status_code=500, detail=f"Failed to verify file: {str(e)}")
+
+    # Get file format from path
+    file_ext = os.path.splitext(filename)[1].lower()
+    file_format = file_ext.lstrip(".")
+
+    # Create asset record
+    asset = Asset(
+        id=asset_id,
+        name=data.title,
+        description=data.description,
+        file_path=actual_file_path,
+        file_size=file_size,
+        file_format=file_format,
+        status=AssetStatus.PROCESSING,
+        created_by_id=current_user.id,
+        organization_id=current_user.organization_id,
+    )
+
+    db.add(asset)
+    await db.commit()
+    await db.refresh(asset)
+
+    return AssetResponse(
+        id=str(asset.id),
+        name=asset.name,
+        description=asset.description,
+        file_path=asset.file_path,
+        file_size=asset.file_size,
+        file_format=asset.file_format,
+        status=asset.status,
+        thumbnail_url=asset.thumbnail_url,
+        metadata=asset.asset_metadata,
+        created_by_id=str(asset.created_by_id) if asset.created_by_id else None,
+        organization_id=str(asset.organization_id),
+        created_at=asset.created_at.isoformat(),
+        updated_at=asset.updated_at.isoformat(),
+    )
