@@ -239,10 +239,14 @@ export interface Playlist extends UUIDModel, TimestampModel {
   is_active: boolean;
   loop_mode: boolean;
   shuffle_mode: boolean;
+  shuffle: boolean;
   transition_type: TransitionType;
   transition_duration_ms: number;
   schedule_config?: ScheduleConfig;
   items?: PlaylistItem[];
+  item_count: number;
+  total_duration_sec?: number;
+  description?: string;
 }
 
 export interface PlaylistItem {

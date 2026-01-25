@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DeviceStatusBadge, DeviceHealthCard, DeviceCommandPanel } from "@/components/devices";
+import { DeviceStatusBadge, DeviceCommandPanel } from "@/components/devices";
 import { devicesApi, playlistsApi } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowLeft, MapPin, Cpu, ListVideo, Loader2 } from "lucide-react";
@@ -43,16 +43,6 @@ export default function DeviceDetailPage() {
     },
   });
 
-  const { data: health, refetch: refetchHealth } = useQuery({
-    queryKey: ["device-health", deviceId],
-    queryFn: async () => {
-      const data = await devicesApi.getHealth(deviceId);
-      return data[0]; // Get latest heartbeat
-    },
-    enabled: !!deviceId && device?.status === "active",
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
-
   const assignPlaylistMutation = useMutation({
     mutationFn: (playlistId: string) => devicesApi.assignPlaylist(deviceId, playlistId),
     onSuccess: () => {
@@ -69,10 +59,6 @@ export default function DeviceDetailPage() {
     if (selectedPlaylistId) {
       assignPlaylistMutation.mutate(selectedPlaylistId);
     }
-  };
-
-  const handleCommandSent = () => {
-    refetchHealth();
   };
 
   const isOnline = (device: Device) => {
@@ -292,14 +278,11 @@ export default function DeviceDetailPage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Health Metrics */}
-          {health && <DeviceHealthCard health={health} />}
         </div>
 
         {/* Commands */}
         <div>
-          <DeviceCommandPanel deviceId={device.id} onCommandSent={handleCommandSent} />
+          <DeviceCommandPanel deviceId={device.id} />
         </div>
       </div>
     </div>
