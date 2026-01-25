@@ -14,6 +14,25 @@ import {
 import { Asset, ProcessingStatus, AssetCategory } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils/cn";
+import { ThreeDPreviewMini } from "./ThreeDPreview";
+
+// Map backend status to frontend ProcessingStatus
+const mapStatusToProcessing = (status: string): ProcessingStatus => {
+  switch (status) {
+    case "ready":
+    case "completed":
+      return ProcessingStatus.COMPLETED;
+    case "processing":
+    case "uploading":
+      return ProcessingStatus.PROCESSING;
+    case "error":
+    case "failed":
+      return ProcessingStatus.FAILED;
+    case "pending":
+    default:
+      return ProcessingStatus.PENDING;
+  }
+};
 
 interface AssetCardProps {
   asset: Asset;
