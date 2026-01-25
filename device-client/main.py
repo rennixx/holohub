@@ -178,11 +178,17 @@ class DeviceClient:
                 logger.info(f"  [{i}/{len(items)}] {asset_id} - cached ✓")
                 continue
 
-            # Download
+            # Download with asset data from playlist (skip metadata fetch)
             logger.info(f"  [{i}/{len(items)}] {asset_id} - downloading...")
+            asset_data = {
+                "file_path": item.get("asset_file_path"),
+                "file_size": item.get("asset_file_size"),
+                "mime_type": item.get("asset_mime_type", "model/glb"),
+            }
             cached = self.content_manager.download_content(
                 api_client=self.api_client,
                 asset_id=asset_id,
+                asset_data=asset_data,
             )
 
             if not cached:
