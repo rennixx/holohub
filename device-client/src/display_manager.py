@@ -489,8 +489,8 @@ class Real3DDisplayBackend(DisplayBackend):
     def shutdown(self) -> None:
         """Shutdown display."""
         if self._window is not None:
-            import pyglet
-            pyglet.app.exit()
+            if PYGLET_AVAILABLE:
+                pyglet.app.exit()
         self._initialized = False
         self._scene = None
         self.current_content = None
