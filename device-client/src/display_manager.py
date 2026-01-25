@@ -402,9 +402,10 @@ class Real3DDisplayBackend(DisplayBackend):
             # Calculate centroid (center of bounds)
             centroid = (bounds[0] + bounds[1]) / 2
 
-            # Center the scene
+            # Center the scene - apply_translation takes a translation vector
+            translation = -centroid
             for geom in scene.geometry.values():
-                geom.apply_translation(-centroid[0], -centroid[1], -centroid[2])
+                geom.apply_translation(translation)
 
             # Scale to fit in view
             extents = bounds[1] - bounds[0]  # Size along each axis

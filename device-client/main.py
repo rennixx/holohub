@@ -118,6 +118,20 @@ class DeviceClient:
             # Get system metrics
             metrics_data = self.metrics.get_all_metrics(self.config.api_base_url)
 
+            # Map metric names to match API client expectations
+            metrics_mapping = {
+                "cpu_usage_percent": "cpu_percent",
+                "memory_usage_percent": "memory_percent",
+                "storage_used_gb": "storage_used_gb",
+                "temperature_celsius": "temperature_celsius",
+                "bandwidth_mbps": "bandwidth_mbps",
+                "latency_ms": "latency_ms",
+            }
+
+            for old_name, new_name in metrics_mapping.items():
+                if old_name in metrics_data:
+                    metrics_data[new_name] = metrics_data.pop(old_name)
+
             # Add firmware/client versions
             metrics_data["firmware_version"] = self.config.firmware_version
             metrics_data["client_version"] = self.config.client_version
