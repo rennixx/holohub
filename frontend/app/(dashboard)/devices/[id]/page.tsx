@@ -69,6 +69,27 @@ export default function DeviceDetailPage() {
     },
   });
 
+  const regenerateSecretMutation = useMutation({
+    mutationFn: () => devicesApi.regenerateSecret(deviceId),
+    onSuccess: (data) => {
+      setNewSecret(data.device_secret);
+      setShowSecretDialog(true);
+      toast.success("Device secret regenerated");
+      setCopied(false);
+    },
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : "Failed to regenerate secret");
+    },
+  });
+
+  const handleCopySecret = () => {
+    if (newSecret) {
+      navigator.clipboard.writeText(newSecret);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   const handleAssignPlaylist = () => {
     if (selectedPlaylistId) {
       assignPlaylistMutation.mutate(selectedPlaylistId);
