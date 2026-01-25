@@ -39,6 +39,9 @@ export default function DeviceDetailPage() {
   const queryClient = useQueryClient();
   const deviceId = params.id as string;
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
+  const [newSecret, setNewSecret] = useState<string | null>(null);
+  const [showSecretDialog, setShowSecretDialog] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const { data: device, isLoading } = useQuery({
     queryKey: ["device", deviceId],
