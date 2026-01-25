@@ -368,6 +368,13 @@ class Real3DDisplayBackend(DisplayBackend):
             logger.info(f"Loading 3D model: {content.file_path}")
             scene = trimesh.load(str(content.file_path), force_load_meshes=True)
 
+            # Log scene info for debugging
+            logger.info(f"  Scene geometries: {len(scene.geometry)}")
+            for name, geom in scene.geometry.items():
+                logger.info(f"    - {name}: {len(geom.vertices)} vertices, {len(geom.faces)} faces")
+                if hasattr(geom, 'visual') and geom.visual:
+                    logger.info(f"      Visual: {type(geom.visual).__name__}")
+
             # Center and scale the model
             scene = self._normalize_scene(scene)
 

@@ -130,7 +130,12 @@ class ContentManager:
 
     def is_cached(self, asset_id: str) -> bool:
         """Check if asset is cached."""
-        return asset_id in self.metadata and self.metadata[asset_id].file_path.exists()
+        in_metadata = asset_id in self.metadata
+        file_exists = in_metadata and self.metadata[asset_id].file_path.exists()
+        logger.debug(f"is_cached({asset_id}): in_metadata={in_metadata}, file_exists={file_exists}")
+        if in_metadata and not file_exists:
+            logger.debug(f"  Metadata file_path: {self.metadata[asset_id].file_path}")
+        return file_exists
 
     def get_cached(self, asset_id: str) -> Optional[CachedContent]:
         """Get cached content metadata."""
