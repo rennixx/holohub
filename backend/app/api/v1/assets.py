@@ -49,19 +49,21 @@ class AssetListResponse(BaseModel):
 
 
 class AssetResponse(BaseModel):
-    """Single asset response."""
+    """Single asset response matching frontend Asset interface."""
 
     id: str
-    name: str
-    description: Optional[str]
+    title: str
+    description: Optional[str] = None
+    category: str = "prop"
     file_path: str
     file_size: int
-    file_format: str
-    status: str
-    thumbnail_url: Optional[str]
-    metadata: dict
+    mime_type: str
+    processing_status: str
+    processing_error: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    metadata: dict = {}
     sha256_hash: Optional[str] = None
-    created_by_id: Optional[str]
+    uploaded_by: str
     organization_id: str
     created_at: str
     updated_at: str
