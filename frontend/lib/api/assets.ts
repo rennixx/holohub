@@ -77,6 +77,29 @@ export const assetsApi = {
   },
 
   /**
+   * Upload file directly through backend (no CORS issues)
+   */
+  uploadDirect: async (file: File, title: string, description?: string, onProgress?: (progress: number) => void): Promise<Asset> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("title", title);
+    if (description) {
+      formData.append("description", description);
+    }
+
+    const response = await apiClient.post<Asset>("/api/v1/assets/upload/direct", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(progress);
+        }
+      },
+    });
+    return response.data;
+  },
+
+  /**
    * Update an asset
    */
   update: async (id: string, data: Partial<Pick<Asset, "title" | "description" | "category" | "metadata">>): Promise<Asset> => {
