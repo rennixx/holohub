@@ -406,7 +406,7 @@ def main():
     args = parser.parse_args()
 
     # Load config
-    client = DeviceClient(config_file=args.config)
+    client = DeviceClient(config_file=args.config, real_3d=args.real_3d)
 
     # Override with command line arguments
     if args.hardware_id:
