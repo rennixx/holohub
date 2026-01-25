@@ -154,8 +154,8 @@ async def list_devices(
             "client_version": device.client_version,
             "current_playlist_id": str(device.current_playlist_id) if device.current_playlist_id else None,
             "organization_id": str(device.organization_id),
-            "created_at": device.created_at.isoformat(),
-            "updated_at": device.updated_at.isoformat(),
+            "created_at": device.created_at.isoformat() + "Z",
+            "updated_at": device.updated_at.isoformat() + "Z",
         }
         for device in devices
     ]

@@ -54,7 +54,8 @@ export function DeviceCommandPanel({ deviceId, onCommandSent }: DeviceCommandPan
   };
 
   const commands = [
-    { value: "restart", label: "Restart Device", icon: RefreshCw, description: "Restart the device" },
+    { value: "refresh", label: "Refresh Content", icon: RefreshCw, description: "Refresh device content" },
+    { value: "reboot", label: "Reboot Device", icon: RefreshCw, description: "Reboot the device" },
     { value: "clear_cache", label: "Clear Cache", icon: Trash2, description: "Clear local asset cache" },
     { value: "screenshot", label: "Take Screenshot", icon: Image, description: "Capture current display" },
     { value: "update_playlist", label: "Update Playlist", icon: ListMusic, description: "Assign a new playlist" },
