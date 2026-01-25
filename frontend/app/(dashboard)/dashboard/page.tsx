@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Box, Monitor, ListMusic, HardDrive } from "lucide-react";
 import { organizationsApi } from "@/lib/api";
@@ -92,7 +93,7 @@ export default function DashboardPage() {
             <CardDescription>Common tasks and shortcuts</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <a
+            <Link
               href="/assets/upload"
               className="flex items-center gap-2 rounded-lg border p-3 hover:bg-accent transition-colors"
             >
@@ -101,8 +102,8 @@ export default function DashboardPage() {
                 <p className="font-medium">Upload Asset</p>
                 <p className="text-sm text-muted-foreground">Add a new 3D model to your library</p>
               </div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/devices"
               className="flex items-center gap-2 rounded-lg border p-3 hover:bg-accent transition-colors"
             >
@@ -111,7 +112,7 @@ export default function DashboardPage() {
                 <p className="font-medium">Manage Devices</p>
                 <p className="text-sm text-muted-foreground">View and control your display fleet</p>
               </div>
-            </a>
+            </Link>
           </CardContent>
         </Card>
 
