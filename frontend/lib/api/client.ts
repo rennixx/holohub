@@ -107,17 +107,31 @@ apiClient.interceptors.response.use(
     // Handle other errors
     if (error.response) {
       const status = error.response.status;
-      const data = error.response.data as { detail?: string; message?: string };
+      const data = error.response.data as { detail?: string | { msg: string }[]; message?: string };
+
+      // Extract error message from various formats
+      let errorMessage = "An unexpected error occurred";
+      if (typeof data?.detail === "string") {
+        errorMessage = data.detail;
+      } else if (Array.isArray(data?.detail)) {
+        // FastAPI validation error format
+        errorMessage = data.detail.map((e: any) => e.msg || JSON.stringify(e)).join(", ");
+      } else if (data?.message) {
+        errorMessage = data.message;
+      }
 
       switch (status) {
         case 400:
-          toast.error(data?.detail || data?.message || "Invalid request");
+          toast.error(errorMessage);
           break;
         case 403:
-          toast.error(data?.detail || "You don't have permission to perform this action");
+          toast.error(errorMessage);
           break;
         case 404:
-          toast.error(data?.detail || "Resource not found");
+          toast.error(errorMessage);
+          break;
+        case 422:
+          toast.error(errorMessage);
           break;
         case 429:
           toast.error("Too many requests. Please try again later.");
@@ -126,7 +140,7 @@ apiClient.interceptors.response.use(
           toast.error("Server error. Please try again later.");
           break;
         default:
-          toast.error(data?.detail || "An unexpected error occurred");
+          toast.error(errorMessage);
       }
     } else if (error.request) {
       // Network error

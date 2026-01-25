@@ -9,7 +9,7 @@ from uuid import UUID
 import os
 import io
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File as FastAPIFile
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File as FastAPIFile, Form
 from pydantic import BaseModel, Field
 from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -536,8 +536,8 @@ async def upload_asset_direct(
     current_user: CurrentUser,
     db: DBSession,
     file: UploadFile = FastAPIFile(..., description="Asset file to upload"),
-    title: str = Query(..., description="Asset title"),
-    description: Optional[str] = Query(None, description="Asset description"),
+    title: str = Form(..., description="Asset title"),
+    description: Optional[str] = Form(None, description="Asset description"),
 ) -> AssetResponse:
     """
     Upload an asset directly through the backend.
