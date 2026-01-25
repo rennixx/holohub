@@ -25,7 +25,7 @@ try:
         GL_VERTEX_ARRAY, GL_NORMAL_ARRAY, GL_TRIANGLES, GL_UNSIGNED_INT,
         GL_TRUE, GL_FALSE, GL_FLOAT, GL_DOUBLE,
         glEnable, glDisable, glLightfv, glClearColor,
-        glMatrixMode, glLoadIdentity,
+        glMatrixMode, glLoadIdentity, glRotatef,
         glEnableClientState, glDisableClientState,
         glVertexPointer, glNormalPointer, glDrawElements, glDrawArrays,
         glFlush, glClear,
