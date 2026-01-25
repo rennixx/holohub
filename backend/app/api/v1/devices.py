@@ -458,3 +458,117 @@ async def send_device_command(
         "command": command.command,
         "timestamp": datetime.now().isoformat(),
     }
+
+
+# =============================================================================
+# Device Connection Endpoints
+# =============================================================================
+@router.post("/auth", response_model=DeviceAuthResponse)
+async def authenticate_device(
+    data: DeviceAuthRequest,
+    db: DBSession,
+) -> DeviceAuthResponse:
+    """
+    Authenticate a device using its hardware_id and device_secret.
+
+    Returns a JWT token that the device should use for subsequent requests.
+    """
+    # Find device by hardware_id
+    result = await db.execute(
+        select(Device).where(
+            Device.hardware_id == data.hardware_id,
+            Device.deleted_at.is_(None),
+        )
+    )
+    device = result.scalar_one_or_none()
+
+    if not device:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Verify device secret
+    if not verify_device_secret(data.device_secret, device.device_secret_hash):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Create device token (valid for 30 days)
+    from app.core.config import get_settings
+
+    settings = get_settings()
+    access_token = create_device_token(
+        device_id=str(device.id),
+        org_id=str(device.organization_id),
+        expires_delta=None,  # Use default from settings
+    )
+
+    return DeviceAuthResponse(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=settings.device_token_expire_days * 24 * 60 * 60,
+        device_id=str(device.id),
+        organization_id=str(device.organization_id),
+    )
+
+
+@router.post("/{device_id}/heartbeat", response_model=HeartbeatResponse)
+async def device_heartbeat(
+    device_id: str,
+    data: HeartbeatRequest,
+    db: DBSession,
+) -> HeartbeatResponse:
+    """
+    Receive heartbeat from a device.
+
+    Updates device status, last heartbeat time, and stores health metrics.
+    Transitions device from PENDING to ACTIVE on first heartbeat.
+    """
+    try:
+        device_uuid = pyUUID(device_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid device ID")
+
+    result = await db.execute(
+        select(Device).where(
+            Device.id == device_uuid,
+            Device.deleted_at.is_(None),
+        )
+    )
+    device = result.scalar_one_or_none()
+
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Update device heartbeat using the model method
+    device.update_heartbeat(
+        cpu_percent=data.cpu_usage_percent,
+        memory_percent=data.memory_usage_percent,
+        storage_used=data.storage_used_gb,
+        temperature=data.temperature_celsius,
+        bandwidth_mbps=data.bandwidth_mbps,
+        latency_ms=data.latency_ms,
+        current_playlist=pyUUID(data.current_playlist_id) if data.current_playlist_id else None,
+        current_asset=pyUUID(data.current_asset_id) if data.current_asset_id else None,
+        playback_position=data.playback_position_sec,
+    )
+
+    # Update firmware/client versions if provided
+    if data.firmware_version:
+        device.firmware_version = data.firmware_version
+    if data.client_version:
+        device.client_version = data.client_version
+
+    await db.commit()
+
+    # Store detailed heartbeat metrics in DeviceHeartbeat table (for time-series data)
+    # This would use TimescaleDB in production
+    # TODO: Implement DeviceHeartbeat model insertion
+
+    status_message = "Device is active"
+    if device.status == DeviceStatus.ACTIVE:
+        status_message = "Heartbeat received, device is active"
+    elif device.status == DeviceStatus.PENDING:
+        status_message = "Device activated successfully"
+
+    return HeartbeatResponse(
+        status=device.status,
+        message=status_message,
+        device_id=str(device.id),
+    )
