@@ -65,11 +65,11 @@ class OrganizationMixin:
 
 
 # Import all models
-from app.models.asset import Asset, AssetAnalytics
+from app.models.asset import Asset, AssetAnalytics, AssetStatus
 from app.models.audit_log import AuditLog
-from app.models.device import Device, DeviceHeartbeat
+from app.models.device import Device, DeviceHeartbeat, DeviceStatus, HardwareType
 from app.models.organization import Organization
-from app.models.playlist import Playlist, PlaylistItem, DevicePlaylist
+from app.models.playlist import Playlist, PlaylistItem, DevicePlaylist, TransitionType
 from app.models.user import User, UserRole
 
 __all__ = [
@@ -85,8 +85,12 @@ __all__ = [
     "DeviceHeartbeat",
     "Asset",
     "AssetAnalytics",
+    "AssetStatus",
+    "DeviceStatus",
+    "HardwareType",
     "Playlist",
     "PlaylistItem",
     "DevicePlaylist",
+    "TransitionType",
     "AuditLog",
 ]
