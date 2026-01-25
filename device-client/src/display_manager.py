@@ -475,7 +475,7 @@ class Real3DDisplayBackend(DisplayBackend):
         """Clear display."""
         self._scene = None
         self.current_content = None
-        if self._window is not None:
+        if self._window is not None and PYGLET_AVAILABLE:
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     def set_brightness(self, brightness: int) -> None:
