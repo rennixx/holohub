@@ -88,6 +88,47 @@ class DeviceCommand(BaseModel):
     parameters: dict = Field(default_factory=dict)
 
 
+class DeviceAuthRequest(BaseModel):
+    """Schema for device authentication."""
+
+    hardware_id: str = Field(..., description="Hardware ID of the device")
+    device_secret: str = Field(..., description="Device secret for authentication")
+
+
+class DeviceAuthResponse(BaseModel):
+    """Response for successful device authentication."""
+
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    device_id: str
+    organization_id: str
+
+
+class HeartbeatRequest(BaseModel):
+    """Schema for device heartbeat."""
+
+    cpu_usage_percent: Optional[float] = None
+    memory_usage_percent: Optional[float] = None
+    storage_used_gb: Optional[float] = None
+    temperature_celsius: Optional[int] = None
+    bandwidth_mbps: Optional[int] = None
+    latency_ms: Optional[int] = None
+    current_playlist_id: Optional[str] = None
+    current_asset_id: Optional[str] = None
+    playback_position_sec: Optional[int] = None
+    firmware_version: Optional[str] = None
+    client_version: Optional[str] = None
+
+
+class HeartbeatResponse(BaseModel):
+    """Response for device heartbeat."""
+
+    status: str
+    message: str
+    device_id: str
+
+
 # =============================================================================
 # Endpoints
 # =============================================================================
