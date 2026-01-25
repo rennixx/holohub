@@ -467,7 +467,7 @@ class Real3DDisplayBackend(DisplayBackend):
 
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
-            gluLookAt(0, 0, 3,  # Eye
+            gluLookAt(0, 0, 6,  # Eye - moved further back for better view
                       0, 0, 0,   # Target
                       0, 1, 0)    # Up
 
