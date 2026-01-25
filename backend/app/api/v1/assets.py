@@ -3,18 +3,26 @@ Assets API
 
 Endpoints for managing holographic assets.
 """
+from datetime import timedelta
 from typing import Optional
 from uuid import UUID
+import os
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
+import boto3
+from botocore.config import Config
 
 from app.api.deps import CurrentUser, DBSession
+from app.core.config import get_settings
 from app.models import Asset, AssetStatus
 from uuid_utils import uuid4
 from uuid_utils.compat import UUID as pyUUID
+
+
+settings = get_settings()
 
 
 router = APIRouter()
@@ -75,6 +83,31 @@ class AssetUpdate(BaseModel):
     status: Optional[str] = None
     thumbnail_url: Optional[str] = None
     metadata: Optional[dict] = None
+
+
+class UploadRequestRequest(BaseModel):
+    """Schema for requesting an upload URL."""
+
+    filename: str = Field(..., max_length=255)
+    file_size: int = Field(..., ge=1, description="File size in bytes")
+    mime_type: str = Field(..., max_length=100)
+
+
+class UploadRequestResponse(BaseModel):
+    """Response with upload URL and asset ID."""
+
+    id: str
+    upload_url: str
+    file_path: str
+
+
+class UploadConfirmRequest(BaseModel):
+    """Schema for confirming an upload."""
+
+    upload_id: str
+    title: str = Field(..., max_length=255)
+    description: Optional[str] = None
+    category: Optional[str] = Field(None, max_length=100)
 
 
 # =============================================================================
