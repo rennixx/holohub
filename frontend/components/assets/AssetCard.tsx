@@ -60,6 +60,20 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
 
   const fileSize = (asset.file_size / 1024 / 1024).toFixed(2);
 
+  // Map backend status to frontend ProcessingStatus
+  const displayStatus = mapStatusToProcessing(asset.processing_status);
+
+  // Determine file URL for 3D preview
+  const fileUrl = `${process.env.NEXT_PUBLIC_S3_ENDPOINT}/${process.env.NEXT_PUBLIC_S3_BUCKET}/${asset.file_path}`;
+  const hasProcessedOutput = asset.outputs?.optimized_glb;
+  const previewUrl = hasProcessedOutput
+    ? `${process.env.NEXT_PUBLIC_S3_ENDPOINT}/${process.env.NEXT_PUBLIC_S3_BUCKET}/${asset.outputs.optimized_glb.file_path}`
+    : fileUrl;
+
+  // Check if this is a GLB/GLTF file that can be previewed
+  const isGlbFormat = asset.mime_type?.includes("glb") || asset.mime_type?.includes("gltf");
+  const canShow3D = displayStatus === ProcessingStatus.COMPLETED && isGlbFormat;
+
   return (
     <Card className="group overflow-hidden hover:shadow-md transition-shadow">
       <Link href={`/assets/${asset.id}`}>
@@ -71,6 +85,8 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
               alt={asset.title}
               className="h-full w-full object-cover transition-transform group-hover:scale-105"
             />
+          ) : canShow3D ? (
+            <ThreeDPreviewMini src={previewUrl} />
           ) : (
             <div className="flex h-full items-center justify-center">
               <Box className="h-16 w-16 text-muted-foreground/50" />
@@ -79,8 +95,8 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
 
           {/* Status Badge */}
           <div className="absolute top-2 right-2">
-            <Badge className={cn("text-white", statusColors[asset.processing_status])}>
-              {asset.processing_status}
+            <Badge className={cn("text-white", statusColors[displayStatus])}>
+              {displayStatus}
             </Badge>
           </div>
 
