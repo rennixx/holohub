@@ -512,6 +512,11 @@ async def confirm_upload(
     file_ext = os.path.splitext(filename)[1].lower()
     file_format = file_ext.lstrip(".")
 
+    # For GLB/GLTF files, mark as ready immediately (no processing needed)
+    # Other formats would go through processing pipeline
+    is_glb_format = file_format in ("glb", "gltf")
+    asset_status = AssetStatus.READY if is_glb_format else AssetStatus.PROCESSING
+
     # Create asset record
     asset = Asset(
         id=asset_id,
@@ -520,7 +525,7 @@ async def confirm_upload(
         file_path=actual_file_path,
         file_size=file_size,
         file_format=file_format,
-        status=AssetStatus.PROCESSING,
+        status=asset_status,
         created_by_id=current_user.id,
         organization_id=current_user.organization_id,
     )
