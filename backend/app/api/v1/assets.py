@@ -435,6 +435,9 @@ async def request_upload_url(
             },
             ExpiresIn=3600,  # 1 hour
         )
+        # Replace internal hostname with public endpoint for frontend access
+        # In development, minio:9000 -> localhost:9000
+        upload_url = upload_url.replace("minio:9000", "localhost:9000")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate upload URL: {str(e)}")
 
