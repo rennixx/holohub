@@ -99,4 +99,12 @@ export const devicesApi = {
     const response = await apiClient.get(`/api/v1/devices/${id}/playlists`);
     return response.data;
   },
+
+  /**
+   * Assign a playlist to a device
+   */
+  assignPlaylist: async (id: string, playlistId: string): Promise<{ message: string; device_id: string; playlist_id: string }> => {
+    const response = await apiClient.post(`/api/v1/devices/${id}/playlists`, { playlist_id: playlistId });
+    return response.data;
+  },
 };
