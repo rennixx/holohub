@@ -29,7 +29,7 @@ try:
         glEnableClientState, glDisableClientState,
         glVertexPointer, glNormalPointer, glDrawElements, glDrawArrays,
         glFlush, glClear,
-        glBegin, glEnd, glNormal3f, glColor3f,
+        glBegin, glEnd, glNormal3f, glColor3f, glVertex3f,
     )
     from OpenGL.GLU import gluPerspective, gluLookAt
     PYGLET_AVAILABLE = True
@@ -457,6 +457,9 @@ class Real3DDisplayBackend(DisplayBackend):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         if self._scene is not None and self._window is not None:
+            # Log occasionally to confirm rendering is happening
+            if int(self._rotation) % 10 == 0:
+                logger.info(f"Rendering: rotation={self._rotation:.1f}, geometries={len(self._scene.geometry)}")
             # Set up simple camera
             glMatrixMode(GL_PROJECTION)
             glLoadIdentity()

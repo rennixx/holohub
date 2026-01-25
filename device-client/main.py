@@ -387,6 +387,9 @@ class DeviceClient:
             first_item = playlist_dict["items"][0]
             current_duration = first_item.get("duration_seconds", 10)
 
+            # Track render count for logging
+            render_count = 0
+
             # Main event loop - run in main thread for pyglet
             import time as time_module
             start_time = time_module.time()
@@ -427,15 +430,18 @@ class DeviceClient:
                     # Force redraw and dispatch events
                     try:
                         pyglet.clock.tick()
-                        for window in pyglet.app.windows:
-                            window.switch_to()
-                            window.dispatch_events()
-                            # Trigger render and flip buffer
-                            if self.display.backend._scene is not None:
-                                window.on_draw()
-                                window.flip()
+                        window = self.display.backend._window
+                        window.switch_to()
+                        window.dispatch_events()
+                        # Directly call the render function and flip buffer
+                        self.display.backend._render_scene()
+                        window.flip()
+                        # Log occasionally to confirm rendering is active
+                        render_count += 1
+                        if render_count % 300 == 0:  # Every ~5 seconds at 60fps
+                            logger.info(f"Rendering active: frame {render_count}, scene loaded: {self.display.backend._scene is not None}")
                     except Exception as e:
-                        logger.debug(f"Pyglet event dispatch error: {e}")
+                        logger.warning(f"Pyglet event error: {e}")
 
                 # Small sleep to prevent CPU spinning
                 time_module.sleep(0.016)  # ~60 FPS
