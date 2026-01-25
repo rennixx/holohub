@@ -619,3 +619,171 @@ async def device_heartbeat(
         message=status_message,
         device_id=str(device.id),
     )
+
+
+# =============================================================================
+# Device Playlist Endpoints
+# =============================================================================
+@router.get("/{device_id}/playlists", response_model=DevicePlaylistResponse)
+async def get_device_playlist(
+    device_id: str,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> DevicePlaylistResponse:
+    """
+    Get the currently assigned playlist for a device.
+
+    Returns the playlist with all items and asset details needed
+    for the device to download and display content.
+    """
+    try:
+        device_uuid = pyUUID(device_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid device ID")
+
+    # Get device
+    device_result = await db.execute(
+        select(Device).where(
+            Device.id == device_uuid,
+            Device.organization_id == current_user.organization_id,
+            Device.deleted_at.is_(None),
+        )
+    )
+    device = device_result.scalar_one_or_none()
+
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Check if device has a playlist assigned
+    if not device.current_playlist_id:
+        raise HTTPException(status_code=404, detail="No playlist assigned to device")
+
+    # Get playlist
+    playlist_result = await db.execute(
+        select(Playlist).where(
+            Playlist.id == device.current_playlist_id,
+            Playlist.organization_id == current_user.organization_id,
+            Playlist.deleted_at.is_(None),
+        )
+    )
+    playlist = playlist_result.scalar_one_or_none()
+
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+
+    # Get playlist items with asset details
+    items_result = await db.execute(
+        select(PlaylistItem, Asset)
+        .join(Asset, PlaylistItem.asset_id == Asset.id)
+        .where(PlaylistItem.playlist_id == playlist.id)
+        .order_by(PlaylistItem.position)
+    )
+    items_assets = items_result.all()
+
+    items = [
+        DevicePlaylistItemResponse(
+            id=str(item.id),
+            asset_id=str(item.asset_id),
+            position=item.position,
+            duration_seconds=item.duration_seconds,
+            transition_override=item.transition_override,
+            custom_settings=item.custom_settings,
+            asset_file_path=asset.file_path,
+            asset_file_size=asset.file_size,
+            asset_mime_type=f"model/{asset.file_format}",
+        )
+        for item, asset in items_assets
+    ]
+
+    return DevicePlaylistResponse(
+        id=str(playlist.id),
+        name=playlist.name,
+        description=playlist.description,
+        loop_mode=playlist.loop_mode,
+        shuffle=playlist.shuffle,
+        transition_type=playlist.transition_type,
+        transition_duration_ms=playlist.transition_duration_ms,
+        schedule_config=playlist.schedule_config,
+        is_active=playlist.is_active,
+        total_duration_sec=playlist.total_duration_sec,
+        item_count=playlist.item_count,
+        items=items,
+    )
+
+
+@router.post("/{device_id}/playlists", response_model=AssignPlaylistResponse, status_code=200)
+async def assign_playlist_to_device(
+    device_id: str,
+    data: AssignPlaylistRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> AssignPlaylistResponse:
+    """
+    Assign a playlist to a device.
+
+    Sets the device's current_playlist_id and creates a DevicePlaylist
+    association record for tracking.
+    """
+    try:
+        device_uuid = pyUUID(device_id)
+        playlist_uuid = pyUUID(data.playlist_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid device ID or playlist ID")
+
+    # Get device
+    device_result = await db.execute(
+        select(Device).where(
+            Device.id == device_uuid,
+            Device.organization_id == current_user.organization_id,
+            Device.deleted_at.is_(None),
+        )
+    )
+    device = device_result.scalar_one_or_none()
+
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Get playlist
+    playlist_result = await db.execute(
+        select(Playlist).where(
+            Playlist.id == playlist_uuid,
+            Playlist.organization_id == current_user.organization_id,
+            Playlist.deleted_at.is_(None),
+        )
+    )
+    playlist = playlist_result.scalar_one_or_none()
+
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+
+    # Check if playlist has items
+    if playlist.item_count == 0:
+        raise HTTPException(status_code=400, detail="Cannot assign empty playlist to device")
+
+    # Update device's current playlist
+    device.current_playlist_id = playlist_uuid
+
+    # Create DevicePlaylist association if it doesn't exist
+    from app.models.playlist import DevicePlaylist
+
+    existing_dp = await db.execute(
+        select(DevicePlaylist).where(
+            DevicePlaylist.device_id == device_uuid,
+            DevicePlaylist.playlist_id == playlist_uuid,
+        )
+    )
+    if not existing_dp.scalar_one_or_none():
+        device_playlist = DevicePlaylist(
+            device_id=device_uuid,
+            playlist_id=playlist_uuid,
+            assigned_by=current_user.id,
+        )
+        db.add(device_playlist)
+
+    await db.commit()
+
+    return AssignPlaylistResponse(
+        message="Playlist assigned to device successfully",
+        device_id=str(device.id),
+        playlist_id=str(playlist.id),
+    )
