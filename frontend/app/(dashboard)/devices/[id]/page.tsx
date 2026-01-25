@@ -314,6 +314,61 @@ export default function DeviceDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Device Credentials */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                Device Credentials
+              </CardTitle>
+              <CardDescription>
+                Credentials for device authentication
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Hardware ID</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input value={device.hardware_id} readOnly className="font-mono text-sm" />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      navigator.clipboard.writeText(device.hardware_id);
+                      toast.success("Hardware ID copied");
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <Label>Device Secret</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  For security, the secret is only shown when regenerated.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-2"
+                  onClick={() => regenerateSecretMutation.mutate()}
+                  disabled={regenerateSecretMutation.isPending}
+                >
+                  {regenerateSecretMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Regenerating...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Regenerate Secret
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Commands */}
@@ -321,6 +376,37 @@ export default function DeviceDetailPage() {
           <DeviceCommandPanel deviceId={device.id} />
         </div>
       </div>
+
+      {/* Secret Dialog */}
+      <Dialog open={showSecretDialog} onOpenChange={setShowSecretDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>New Device Secret</DialogTitle>
+            <DialogDescription>
+              Save this secret securely. It will not be shown again.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Device Secret</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <Input value={newSecret || ""} readOnly className="font-mono text-sm" />
+                <Button variant="outline" size="icon" onClick={handleCopySecret}>
+                  {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              ⚠️ Store this secret securely. You will need it to authenticate the device client.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowSecretDialog(false)}>
+              I've Saved It
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
