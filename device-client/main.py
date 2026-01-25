@@ -20,6 +20,8 @@ from src.api_client import DeviceAPIClient
 from src.system_metrics import get_system_metrics
 from src.content_manager import ContentManager
 from src.display_manager import DisplayManager, DisplayConfig, DisplayType
+from src.playlist_fetcher import PlaylistFetcher
+from src.model_loader import ModelLoader
 from config.config import load_config, DISPLAY_TYPES, HARDWARE_TYPE_MAP
 
 
@@ -43,7 +45,9 @@ class DeviceClient:
     - Command handling
     """
 
-    def __init__(self, config_file: Optional[Path] = None):
+    def __init__(self, config_file: Optional[Path] = None, real_3d: bool = False):
+        self.real_3d = real_3d
+
         # Load configuration
         self.config = load_config(config_file)
 
@@ -69,6 +73,15 @@ class DeviceClient:
             cache_dir=self.config.content_cache_dir,
             max_cache_size_gb=self.config.max_cache_size_gb,
         )
+
+        # Initialize playlist fetcher
+        self.playlist_fetcher = PlaylistFetcher(
+            api_client=self.api_client,
+            polling_interval_sec=60,
+        )
+
+        # Initialize model loader (for real 3D mode)
+        self.model_loader = ModelLoader()
 
         # Setup display
         display_type = DisplayType(self.config.display_type)
@@ -245,6 +258,7 @@ class DeviceClient:
             self.display = DisplayManager(
                 config=self.display_config,
                 simulation_mode=self.config.simulation_mode,
+                real_3d=self.real_3d,
             )
 
             if self.display.initialize():
@@ -382,6 +396,11 @@ def main():
         "--production",
         action="store_true",
         help="Run in production mode (real display)",
+    )
+    parser.add_argument(
+        "--real-3d",
+        action="store_true",
+        help="Run in real 3D mode (pyglet + trimesh window)",
     )
 
     args = parser.parse_args()
