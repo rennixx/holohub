@@ -11,11 +11,12 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select, or_
 
 from app.api.deps import CurrentUser, DBSession
-from app.models import Device, DeviceStatus
+from app.models import Device, DeviceStatus, Playlist, PlaylistItem, Asset
 from app.core.security import hash_device_secret, verify_device_secret, create_device_token, generate_activation_code
 from uuid_utils import uuid4
 from uuid_utils.compat import UUID as pyUUID
 import secrets
+from typing import Dict, Any
 
 
 router = APIRouter()
@@ -134,6 +135,52 @@ class HeartbeatResponse(BaseModel):
     status: str
     message: str
     device_id: str
+
+
+class DevicePlaylistItemResponse(BaseModel):
+    """Single playlist item response for devices."""
+
+    id: str
+    asset_id: str
+    position: int
+    duration_seconds: int
+    transition_override: Optional[str]
+    custom_settings: dict
+    # Include asset details for device download
+    asset_file_path: str
+    asset_file_size: int
+    asset_mime_type: str
+
+
+class DevicePlaylistResponse(BaseModel):
+    """Device playlist response with all items."""
+
+    id: str
+    name: str
+    description: Optional[str]
+    loop_mode: bool
+    shuffle: bool
+    transition_type: str
+    transition_duration_ms: int
+    schedule_config: dict
+    is_active: bool
+    total_duration_sec: Optional[int]
+    item_count: int
+    items: list[DevicePlaylistItemResponse]
+
+
+class AssignPlaylistRequest(BaseModel):
+    """Schema for assigning a playlist to a device."""
+
+    playlist_id: str
+
+
+class AssignPlaylistResponse(BaseModel):
+    """Response for assigning a playlist to a device."""
+
+    message: str
+    device_id: str
+    playlist_id: str
 
 
 # =============================================================================
