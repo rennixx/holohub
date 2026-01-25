@@ -60,6 +60,7 @@ class AssetResponse(BaseModel):
     status: str
     thumbnail_url: Optional[str]
     metadata: dict
+    sha256_hash: Optional[str] = None
     created_by_id: Optional[str]
     organization_id: str
     created_at: str
