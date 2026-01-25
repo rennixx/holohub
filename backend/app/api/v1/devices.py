@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select, or_
 
-from app.api.deps import CurrentUser, DBSession
+from app.api.deps import CurrentUser, CurrentDevice, DBSession
 from app.models import Device, DeviceStatus, Playlist, PlaylistItem, Asset
 from app.core.security import hash_device_secret, verify_device_secret, create_device_token, generate_activation_code
 from uuid_utils import uuid4
@@ -688,7 +688,7 @@ async def device_heartbeat(
 @router.get("/{device_id}/playlists", response_model=DevicePlaylistResponse)
 async def get_device_playlist(
     device_id: str,
-    current_user: CurrentUser,
+    current_device: CurrentDevice,
     db: DBSession,
 ) -> DevicePlaylistResponse:
     """
@@ -696,34 +696,22 @@ async def get_device_playlist(
 
     Returns the playlist with all items and asset details needed
     for the device to download and display content.
+
+    Requires device authentication (device JWT token).
     """
-    try:
-        device_uuid = pyUUID(device_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid device ID")
-
-    # Get device
-    device_result = await db.execute(
-        select(Device).where(
-            Device.id == device_uuid,
-            Device.organization_id == current_user.organization_id,
-            Device.deleted_at.is_(None),
-        )
-    )
-    device = device_result.scalar_one_or_none()
-
-    if not device:
-        raise HTTPException(status_code=404, detail="Device not found")
+    # Verify the device_id matches the authenticated device
+    if str(current_device.id) != device_id:
+        raise HTTPException(status_code=403, detail="Access denied: device ID mismatch")
 
     # Check if device has a playlist assigned
-    if not device.current_playlist_id:
+    if not current_device.current_playlist_id:
         raise HTTPException(status_code=404, detail="No playlist assigned to device")
 
     # Get playlist
     playlist_result = await db.execute(
         select(Playlist).where(
-            Playlist.id == device.current_playlist_id,
-            Playlist.organization_id == current_user.organization_id,
+            Playlist.id == current_device.current_playlist_id,
+            Playlist.organization_id == current_device.organization_id,
             Playlist.deleted_at.is_(None),
         )
     )
