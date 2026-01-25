@@ -189,21 +189,22 @@ export default function EditPlaylistPage() {
                 <Select
                   value={selectedAssetId || ""}
                   onValueChange={setSelectedAssetId}
-                  disabled={readyAssets.length === 0}
                 >
                   <SelectTrigger id="asset-select">
-                    <SelectValue placeholder={
-                      readyAssets.length === 0
-                        ? "No ready assets available"
-                        : "Select an asset"
-                    } />
+                    <SelectValue placeholder="Select an asset" />
                   </SelectTrigger>
                   <SelectContent>
-                    {readyAssets.map((asset) => (
-                      <SelectItem key={asset.id} value={asset.id}>
-                        {asset.title}
-                      </SelectItem>
-                    ))}
+                    {readyAssets.length === 0 ? (
+                      <div className="p-2 text-sm text-muted-foreground text-center">
+                        No ready assets available
+                      </div>
+                    ) : (
+                      readyAssets.map((asset) => (
+                        <SelectItem key={asset.id} value={asset.id}>
+                          {asset.title}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
