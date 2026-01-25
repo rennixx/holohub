@@ -12,8 +12,10 @@ from sqlalchemy import select, or_
 
 from app.api.deps import CurrentUser, DBSession
 from app.models import Device, DeviceStatus
+from app.core.security import hash_device_secret, generate_activation_code
 from uuid_utils import uuid4
 from uuid_utils.compat import UUID as pyUUID
+import secrets
 
 
 router = APIRouter()
