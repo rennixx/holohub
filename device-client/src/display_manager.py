@@ -13,6 +13,15 @@ from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 
+# Optional OpenGL imports - only available if pyglet is installed
+try:
+    from pyglet.gl import *
+    import pyglet
+    PYGLET_AVAILABLE = True
+except ImportError:
+    PYGLET_AVAILABLE = False
+    pyglet = None
+
 
 logger = logging.getLogger(__name__)
 
@@ -275,8 +284,8 @@ class Real3DDisplayBackend(DisplayBackend):
 
             # Try to create a simple viewer with pyglet
             try:
-                import pyglet
-                from pyglet.gl import *
+                if not PYGLET_AVAILABLE:
+                    raise ImportError("pyglet not available")
 
                 # Create window
                 window_width, window_height = self.config.resolution
