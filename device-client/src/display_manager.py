@@ -433,10 +433,11 @@ class Real3DDisplayBackend(DisplayBackend):
             pyglet.app.run()
         else:
             # Run for specified duration using clock tick
-            start_time = pyglet.clock.time()
+            import time as time_module
+            start_time = time_module.time()
 
             def update(dt):
-                elapsed = pyglet.clock.time() - start_time
+                elapsed = time_module.time() - start_time
                 if elapsed >= duration:
                     pyglet.app.exit()
 
