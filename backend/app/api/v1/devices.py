@@ -238,13 +238,19 @@ async def create_device(
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Hardware ID already registered")
 
+    # Generate a device secret for authentication
+    device_secret = secrets.token_urlsafe(32)
+    device_secret_hash = hash_device_secret(device_secret)
+
     device = Device(
         name=data.name,
         hardware_type=data.hardware_type,
         hardware_id=data.hardware_id,
+        device_secret_hash=device_secret_hash,
         status=DeviceStatus.PENDING,
         location_metadata=data.location_metadata,
         tags=data.tags,
+        display_config={},
         organization_id=current_user.organization_id,
     )
 
