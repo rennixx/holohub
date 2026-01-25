@@ -244,21 +244,22 @@ export default function DeviceDetailPage() {
                   <Select
                     value={selectedPlaylistId || ""}
                     onValueChange={setSelectedPlaylistId}
-                    disabled={activePlaylists.length === 0}
                   >
                     <SelectTrigger id="playlist-select" className="flex-1">
-                      <SelectValue placeholder={
-                        activePlaylists.length === 0
-                          ? "No active playlists available"
-                          : "Select a playlist"
-                      } />
+                      <SelectValue placeholder="Select a playlist" />
                     </SelectTrigger>
                     <SelectContent>
-                      {activePlaylists.map((playlist) => (
-                        <SelectItem key={playlist.id} value={playlist.id}>
-                          {playlist.name} ({playlist.item_count} items)
-                        </SelectItem>
-                      ))}
+                      {activePlaylists.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          No active playlists with items
+                        </div>
+                      ) : (
+                        activePlaylists.map((playlist) => (
+                          <SelectItem key={playlist.id} value={playlist.id}>
+                            {playlist.name} ({playlist.item_count} items)
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <Button
