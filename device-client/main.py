@@ -343,7 +343,7 @@ class DeviceClient:
             }
 
             # Step 4: Download content
-            if not self.download_playlist_content(playlist):
+            if not self.download_playlist_content(playlist_dict):
                 logger.error("Failed to download playlist content")
                 return
 
@@ -354,7 +354,7 @@ class DeviceClient:
             import threading
             playlist_thread = threading.Thread(
                 target=self.execute_playlist,
-                args=(playlist,),
+                args=(playlist_dict,),
                 daemon=True,
             )
             playlist_thread.start()
