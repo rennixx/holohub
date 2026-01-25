@@ -165,19 +165,22 @@ async def list_assets(
     result = await db.execute(query)
     assets = result.scalars().all()
 
-    # Convert to response format
+    # Convert to response format (matching frontend Asset interface)
     items = [
         {
             "id": str(asset.id),
-            "name": asset.name,
+            "title": asset.name,
             "description": asset.description,
+            "category": "prop",  # Default category
             "file_path": asset.file_path,
             "file_size": asset.file_size,
-            "file_format": asset.file_format,
-            "status": asset.status,
+            "mime_type": f"model/{asset.file_format}",
+            "processing_status": asset.status,
+            "processing_error": None,
             "thumbnail_url": asset.thumbnail_url,
             "metadata": asset.asset_metadata,
-            "created_by_id": str(asset.created_by_id) if asset.created_by_id else None,
+            "sha256_hash": None,
+            "uploaded_by": str(asset.created_by_id) if asset.created_by_id else "",
             "organization_id": str(asset.organization_id),
             "created_at": asset.created_at.isoformat(),
             "updated_at": asset.updated_at.isoformat(),
