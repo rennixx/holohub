@@ -15,8 +15,20 @@ from enum import Enum
 
 # Optional OpenGL imports - only available if pyglet is installed
 try:
-    from pyglet.gl import *
     import pyglet
+    from pyglet.gl import (
+        GL_DEPTH_TEST, GL_LIGHTING, GL_LIGHT0, GL_COLOR_MATERIAL,
+        GL_AMBIENT_AND_DIFFUSE, GL_FRONT_AND_BACK, GL_POSITION,
+        GL_AMBIENT, GL_DIFFUSE, GL_PROJECTION, GL_MODELVIEW,
+        GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT,
+        GL_VERTEX_ARRAY, GL_NORMAL_ARRAY, GL_TRIANGLES, GL_UNSIGNED_INT,
+        GL_TRUE, GL_FALSE, GL_FLOAT, GL_DOUBLE,
+        glEnable, glDisable, glLightfv, glClearColor,
+        glMatrixMode, glLoadIdentity, glLoadMatrixd,
+        glEnableClientState, glDisableClientState,
+        glVertexPointer, glNormalPointer, glDrawElements, glDrawArrays,
+        glFlush, glClear, gluPerspective, gluLookAt,
+    )
     PYGLET_AVAILABLE = True
 except ImportError:
     PYGLET_AVAILABLE = False
