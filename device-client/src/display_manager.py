@@ -507,6 +507,10 @@ class Real3DDisplayBackend(DisplayBackend):
 
         glFlush()
 
+        # Flip the buffer to display the rendered content
+        if self._window is not None:
+            self._window.flip()
+
     def clear(self) -> None:
         """Clear display."""
         self._scene = None

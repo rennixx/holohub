@@ -391,6 +391,9 @@ class DeviceClient:
             import time as time_module
             start_time = time_module.time()
 
+            # Track current asset to avoid unnecessary reloading
+            current_asset_id = None
+
             while self._running:
                 current_time = time_module.time()
 
@@ -402,12 +405,17 @@ class DeviceClient:
                     ) % len(playlist_dict["items"])
 
                     item = playlist_dict["items"][playlist_dict["current_item_idx"]]
+                    new_asset_id = item.get("asset_id")
                     current_duration = item.get("duration_seconds", 10)
                     last_item_time = current_time
 
-                    # Display new item
-                    logger.info(f"Displaying: {item.get('asset_id')} ({current_duration}s)")
-                    self.display_playlist_item(item)
+                    # Only reload if asset changed
+                    if new_asset_id != current_asset_id:
+                        logger.info(f"Loading new asset: {new_asset_id} ({current_duration}s)")
+                        self.display_playlist_item(item)
+                        current_asset_id = new_asset_id
+                    else:
+                        logger.debug(f"Continuing to display: {new_asset_id}")
 
                 # Send heartbeat periodically
                 if current_time - last_heartbeat_time >= self.config.heartbeat_interval:
@@ -422,7 +430,9 @@ class DeviceClient:
                         for window in pyglet.app.windows:
                             window.switch_to()
                             window.dispatch_events()
-                            window.dispatch_event(pyglet.window.Event(pyglet.window.EVENT_TYPE_EXPOSE))
+                            # Explicitly render the scene
+                            if self.display.backend._scene is not None:
+                                self.display.backend._render_scene()
                     except Exception as e:
                         logger.debug(f"Pyglet event dispatch error: {e}")
 
