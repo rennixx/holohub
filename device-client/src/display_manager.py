@@ -29,6 +29,7 @@ try:
         glEnableClientState, glDisableClientState,
         glVertexPointer, glNormalPointer, glDrawElements, glDrawArrays,
         glFlush, glClear,
+        glBegin, glEnd, glNormal3f, glColor3f,
     )
     from OpenGL.GLU import gluPerspective, gluLookAt
     PYGLET_AVAILABLE = True
@@ -437,12 +438,14 @@ class Real3DDisplayBackend(DisplayBackend):
 
     def _render_scene(self):
         """Render the current scene (called by pyglet)."""
-        import trimesh
         import numpy as np
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        if self._scene is not None:
+        if self._scene is not None and self._window is not None:
+            # Use pyglet's graphics for simpler rendering
+            batch = pyglet.graphics.Batch()
+
             # Set up simple camera
             glMatrixMode(GL_PROJECTION)
             glLoadIdentity()
@@ -458,34 +461,49 @@ class Real3DDisplayBackend(DisplayBackend):
 
             # Apply rotation
             glRotatef(self._rotation, 0, 1, 0)
+            glRotatef(30, 1, 0, 0)  # Tilt down a bit
 
-            # Get geometry from scene
+            # Get geometry from scene and render each mesh
             for geom in self._scene.geometry.values():
-                # Convert trimesh geometry to OpenGL format
                 vertices = geom.vertices
                 faces = geom.faces
 
-                # Check if it has vertex colors, otherwise use white
+                # Check for visual properties
                 if hasattr(geom, 'visual') and hasattr(geom.visual, 'face_colors'):
                     colors = geom.visual.face_colors
                 else:
-                    # Default white color
-                    colors = np.ones((len(faces), 4), dtype=np.float32)
+                    # Default white color for all faces
+                    colors = np.ones((len(faces), 3), dtype=np.float32)
 
-                # Enable vertex arrays
-                glEnableClientState(GL_VERTEX_ARRAY)
-                glVertexPointer(3, GL_DOUBLE, vertices)
+                # Enable depth testing
+                glEnable(GL_DEPTH_TEST)
 
-                if hasattr(faces, 'shape') and len(faces.shape) == 2:
-                    # Draw faces
-                    glDrawElements(GL_TRIANGLES, faces.size, GL_UNSIGNED_INT, faces)
-                else:
-                    # Simple triangles
-                    glDrawArrays(GL_TRIANGLES, 0, vertices.shape[0])
+                # Draw each face
+                for i, face in enumerate(faces):
+                    # Get triangle vertices
+                    v0 = vertices[face[0]]
+                    v1 = vertices[face[1]]
+                    v2 = vertices[face[2]]
 
-                glDisableClientState(GL_VERTEX_ARRAY)
+                    # Get face color (default to white)
+                    if i < len(colors):
+                        c = colors[i]
+                        if len(c) >= 3:
+                            glColor3f(c[0], c[1], c[2])
+                        else:
+                            glColor3f(1, 1, 1)
+                    else:
+                        glColor3f(1, 1, 1)
 
-        self._rotation += 0.5
+                    # Draw triangle
+                    glBegin(GL_TRIANGLES)
+                    glNormal3f(0, 0, 1)  # Simple normal
+                    glVertex3f(v0[0], v0[1], v0[2])
+                    glVertex3f(v1[0], v1[1], v1[2])
+                    glVertex3f(v2[0], v2[1], v2[2])
+                    glEnd()
+
+            self._rotation += 0.5
 
         glFlush()
 
