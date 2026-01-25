@@ -442,33 +442,52 @@ class Real3DDisplayBackend(DisplayBackend):
     def _render_scene(self):
         """Render the current scene (called by pyglet)."""
         import trimesh
+        import numpy as np
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         if self._scene is not None:
+            # Set up simple camera
+            glMatrixMode(GL_PROJECTION)
+            glLoadIdentity()
+            from pyglet.gl import gluPerspective
+            gluPerspective(45, (self._window.width / self._window.height), 0.1, 100.0)
+
+            glMatrixMode(GL_MODELVIEW)
+            glLoadIdentity()
+            from pyglet.gl import gluLookAt
+            gluLookAt(0, 0, 3,  # Eye
+                      0, 0, 0,   # Target
+                      0, 1, 0)    # Up
+
+            # Apply rotation
+            glRotatef(self._rotation, 0, 1, 0)
+
             # Get geometry from scene
             for geom in self._scene.geometry.values():
                 # Convert trimesh geometry to OpenGL format
                 vertices = geom.vertices
                 faces = geom.faces
-                normals = geom.vertex_normals
+
+                # Check if it has vertex colors, otherwise use white
+                if hasattr(geom, 'visual') and hasattr(geom.visual, 'face_colors'):
+                    colors = geom.visual.face_colors
+                else:
+                    # Default white color
+                    colors = np.ones((len(faces), 4), dtype=np.float32)
 
                 # Enable vertex arrays
                 glEnableClientState(GL_VERTEX_ARRAY)
-                glEnableClientState(GL_NORMAL_ARRAY)
-
                 glVertexPointer(3, GL_DOUBLE, vertices)
-                glNormalPointer(GL_DOUBLE, normals)
 
                 if hasattr(faces, 'shape') and len(faces.shape) == 2:
-                    # Triangles
+                    # Draw faces
                     glDrawElements(GL_TRIANGLES, faces.size, GL_UNSIGNED_INT, faces)
                 else:
                     # Simple triangles
                     glDrawArrays(GL_TRIANGLES, 0, vertices.shape[0])
 
                 glDisableClientState(GL_VERTEX_ARRAY)
-                glDisableClientState(GL_NORMAL_ARRAY)
 
         self._rotation += 0.5
 
@@ -484,10 +503,10 @@ class Real3DDisplayBackend(DisplayBackend):
     def set_brightness(self, brightness: int) -> None:
         """Set display brightness (0-100)."""
         self.config.brightness = max(0, min(100, brightness))
-        # Update lighting if window is active
+        # Clear color brightness adjustment
         if self._initialized and self._window is not None:
             b = brightness / 100.0
-            glLightfv(GL_LIGHT0, GL_DIFFUSE, (b * 0.8, b * 0.8, b * 0.8, 1.0))
+            glClearColor(b * 0.1, b * 0.1, b * 0.1, 1.0)
 
     def shutdown(self) -> None:
         """Shutdown display."""
