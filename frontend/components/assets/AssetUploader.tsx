@@ -60,32 +60,19 @@ export function AssetUploader() {
         prev.map((u) => (u.id === upload.id ? { ...u, status: "uploading" as const } : u))
       );
 
-      // Request upload URL
-      const { id: uploadId, upload_url } = await assetsApi.requestUpload(
-        upload.file.name,
-        upload.file.size,
-        upload.file.type
+      // Upload directly through backend (no CORS issues)
+      await assetsApi.uploadDirect(
+        upload.file,
+        upload.file.name.replace(/\.[^/.]+$/, ""), // title without extension
+        undefined, // description
+        (progress) => {
+          setUploads((prev) => prev.map((u) => (u.id === upload.id ? { ...u, progress } : u)));
+        }
       );
-
-      // Upload to S3
-      await assetsApi.uploadToS3(upload_url, upload.file, (progress) => {
-        setUploads((prev) => prev.map((u) => (u.id === upload.id ? { ...u, progress } : u)));
-      });
-
-      // Update status to processing
-      setUploads((prev) =>
-        prev.map((u) => (u.id === upload.id ? { ...u, status: "processing" as const, progress: 100 } : u))
-      );
-
-      // Confirm upload (this will trigger backend processing)
-      await assetsApi.confirmUpload(uploadId, {
-        title: upload.file.name.replace(/\.[^/.]+$/, ""),
-        category: "scene",
-      });
 
       // Update status to completed
       setUploads((prev) =>
-        prev.map((u) => (u.id === upload.id ? { ...u, status: "completed" as const } : u))
+        prev.map((u) => (u.id === upload.id ? { ...u, status: "completed" as const, progress: 100 } : u))
       );
 
       toast.success(`${upload.file.name} uploaded successfully!`);
