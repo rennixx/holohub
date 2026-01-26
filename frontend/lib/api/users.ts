@@ -72,4 +72,12 @@ export const usersApi = {
   changePassword: async (data: { current_password: string; new_password: string }): Promise<void> => {
     await apiClient.post("/api/v1/users/me/password", data);
   },
+
+  /**
+   * Update current user's profile
+   */
+  updateProfile: async (data: { full_name?: string; avatar_url?: string }): Promise<User> => {
+    const response = await apiClient.patch<User>("/api/v1/users/me", data);
+    return response.data;
+  },
 };
