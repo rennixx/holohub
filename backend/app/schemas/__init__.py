@@ -181,4 +181,15 @@ __all__ = [
     "PlaylistItemResponse",
     "ScheduleConfig",
     "RecurrenceConfig",
+    # Settings
+    "UserSettingsBase",
+    "UserSettingsUpdate",
+    "UserSettingsResponse",
+    "OrgSettingsBase",
+    "OrgSettingsUpdate",
+    "OrgSettingsResponse",
+    "LogoUploadResponse",
+    "SettingsErrorResponse",
+    "ThemePreference",
+    "ViewMode",
 ]
