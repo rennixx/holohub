@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/lib/store";
-import { organizationsApi } from "@/lib/api";
+import { organizationsApi, usersApi } from "@/lib/api";
 import { useSettings, useUpdateSettings, useOrgSettings, useUpdateOrgSettings } from "@/hooks/useSettings";
 import { Loader2, User as UserIcon, Lock, Bell, Palette } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
