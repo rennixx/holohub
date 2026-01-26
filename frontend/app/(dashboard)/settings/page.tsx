@@ -86,9 +86,24 @@ export default function SettingsPage() {
   });
 
   // Handlers
+  const queryClient = useQueryClient();
+
+  const profileMutation = useMutation({
+    mutationFn: (data: { full_name: string }) => usersApi.updateProfile(data),
+    onSuccess: (updatedUser) => {
+      // Update auth store with new user data
+      useAuthStore.getState().setUser(updatedUser);
+      queryClient.setQueryData(["user"], updatedUser);
+      toast.success("Profile updated successfully");
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Failed to update profile";
+      toast.error(message);
+    },
+  });
+
   const handleSaveProfile = async () => {
-    // TODO: Implement profile update API
-    console.log("Saving profile:", profileForm);
+    profileMutation.mutate({ full_name: profileForm.full_name });
   };
 
   const handleSavePreferences = async () => {
