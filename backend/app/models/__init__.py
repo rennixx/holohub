@@ -71,6 +71,7 @@ from app.models.device import Device, DeviceHeartbeat, DeviceStatus, HardwareTyp
 from app.models.organization import Organization
 from app.models.playlist import Playlist, PlaylistItem, DevicePlaylist, TransitionType
 from app.models.user import User, UserRole
+from app.models.user_settings import UserSettings, ThemePreference, ViewMode
 
 __all__ = [
     "Base",
@@ -93,4 +94,7 @@ __all__ = [
     "DevicePlaylist",
     "TransitionType",
     "AuditLog",
+    "UserSettings",
+    "ThemePreference",
+    "ViewMode",
 ]
