@@ -521,6 +521,14 @@ export default function SettingsPage() {
                       onCheckedChange={(checked) => setPrivacyForm({ ...privacyForm, activity_visible: checked })}
                     />
                   </div>
+                  <Button
+                    onClick={handleSavePrivacy}
+                    variant="holo-secondary"
+                    className="mt-2"
+                    disabled={updateSettings.isPending}
+                  >
+                    {updateSettings.isPending ? "Saving..." : "Save Privacy"}
+                  </Button>
                 </div>
               </div>
 
