@@ -5,9 +5,11 @@ Stores user-specific preferences and settings.
 """
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 
 from app.db.base import Base
 from app.models import TimestampMixin
