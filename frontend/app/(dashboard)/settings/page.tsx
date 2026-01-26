@@ -68,6 +68,7 @@ export default function SettingsPage() {
     date_format: settings?.date_format || "MM/DD/YYYY",
     default_view_mode: settings?.default_view_mode || "grid",
     items_per_page: settings?.items_per_page || 20,
+    auto_refresh_devices: settings?.auto_refresh_devices ?? true,
   });
 
   const [notifForm, setNotifForm] = useState({
@@ -97,6 +98,7 @@ export default function SettingsPage() {
       date_format: prefsForm.date_format,
       default_view_mode: prefsForm.default_view_mode as any,
       items_per_page: prefsForm.items_per_page,
+      auto_refresh_devices: prefsForm.auto_refresh_devices,
     });
   };
 
