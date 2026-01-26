@@ -4,6 +4,7 @@ Settings Schemas
 Pydantic schemas for user and organization settings validation and serialization.
 """
 from typing import Any, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
