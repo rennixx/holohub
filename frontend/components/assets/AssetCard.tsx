@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MoreHorizontal, Clock, Box } from "lucide-react";
+import { MoreHorizontal, Clock, Box, Play, Download } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,17 +40,17 @@ interface AssetCardProps {
 }
 
 const statusColors: Record<ProcessingStatus, string> = {
-  [ProcessingStatus.PENDING]: "bg-yellow-500",
-  [ProcessingStatus.PROCESSING]: "bg-blue-500",
-  [ProcessingStatus.COMPLETED]: "bg-green-500",
-  [ProcessingStatus.FAILED]: "bg-red-500",
+  [ProcessingStatus.PENDING]: "border-amber-500/40 bg-amber-500/20 text-amber-400 shadow-lg shadow-amber-500/20",
+  [ProcessingStatus.PROCESSING]: "border-cyan-500/40 bg-cyan-500/20 text-cyan-400 shadow-lg shadow-cyan-500/20 animate-pulse",
+  [ProcessingStatus.COMPLETED]: "border-green-500/40 bg-green-500/20 text-green-400 shadow-lg shadow-green-500/20",
+  [ProcessingStatus.FAILED]: "border-red-500/40 bg-red-500/20 text-red-400 shadow-lg shadow-red-500/20",
 };
 
 const categoryColors: Record<AssetCategory, string> = {
-  [AssetCategory.SCENE]: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
-  [AssetCategory.PRODUCT]: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
-  [AssetCategory.CHARACTER]: "bg-green-500/10 text-green-500 hover:bg-green-500/20",
-  [AssetCategory.PROP]: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20",
+  [AssetCategory.SCENE]: "border-violet-500/30 text-violet-300 hover:bg-violet-500/10",
+  [AssetCategory.PRODUCT]: "border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10",
+  [AssetCategory.CHARACTER]: "border-green-500/30 text-green-300 hover:bg-green-500/10",
+  [AssetCategory.PROP]: "border-orange-500/30 text-orange-300 hover:bg-orange-500/10",
 };
 
 export function AssetCard({ asset, onDelete }: AssetCardProps) {
@@ -75,58 +75,87 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
   const canShow3D = displayStatus === ProcessingStatus.COMPLETED && isGlbFormat;
 
   return (
-    <Card className="group overflow-hidden hover:shadow-md transition-shadow">
+    <Card className="
+      group overflow-hidden
+      glass-holo rounded-xl
+      hover:scale-[1.02] hover:shadow-2xl hover:shadow-violet-500/20
+      hover:border-violet-400/50
+      active:scale-[0.98]
+      transition-all duration-300
+      cursor-pointer
+      relative
+    ">
       <Link href={`/assets/${asset.id}`}>
-        <div className="aspect-square relative overflow-hidden bg-muted">
+        {/* Preview Area */}
+        <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-slate-950 to-slate-900">
           {thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={thumbnailUrl}
               alt={asset.title}
-              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
           ) : canShow3D ? (
             <ThreeDPreviewMini src={previewUrl} />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <Box className="h-16 w-16 text-muted-foreground/50" />
+              <Box className="h-16 w-16 text-violet-500/30" />
             </div>
           )}
 
-          {/* Status Badge */}
-          <div className="absolute top-2 right-2">
-            <Badge className={cn("text-white", statusColors[displayStatus])}>
+          {/* Gradient overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          {/* Status Badge with Glow */}
+          <div className="absolute top-3 right-3">
+            <Badge className={cn(
+              "text-white font-semibold shadow-lg border",
+              statusColors[displayStatus],
+              displayStatus === ProcessingStatus.PROCESSING && "animate-pulse"
+            )}>
               {displayStatus}
             </Badge>
           </div>
 
           {/* Duration Badge */}
           {asset.duration && (
-            <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/70 px-2 py-1 text-xs text-white">
+            <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-black/70 backdrop-blur-sm px-3 py-1 text-xs text-white border border-white/10">
               <Clock className="h-3 w-3" />
               {formatDuration(asset.duration)}
             </div>
           )}
+
+          {/* Quick Actions Overlay */}
+          <div className="absolute bottom-3 left-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Button size="icon" variant="holo-primary" className="h-8 w-8 shadow-lg">
+              <Play className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="holo-secondary" className="h-8 w-8">
+              <Download className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </Link>
 
-      <CardContent className="p-4">
+      {/* Card Content */}
+      <CardContent className="p-4 space-y-3">
+        {/* Title & Actions */}
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <Link href={`/assets/${asset.id}`}>
-              <h3 className="font-medium truncate hover:underline">{asset.title}</h3>
-            </Link>
-            <p className="text-sm text-muted-foreground truncate">{asset.description || "No description"}</p>
-          </div>
-
+          <Link href={`/assets/${asset.id}`} className="flex-1 min-w-0">
+            <h3 className="font-medium text-white truncate group-hover:text-violet-300 transition-colors">
+              {asset.title}
+            </h3>
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button variant="holo-ghost" size="icon" className="shrink-0 h-8 w-8">
                 <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Actions</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent
+              align="end"
+              className="glass-holo border-violet-500/30"
+            >
               <DropdownMenuItem asChild>
                 <Link href={`/assets/${asset.id}`}>View Details</Link>
               </DropdownMenuItem>
@@ -135,7 +164,7 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
               </DropdownMenuItem>
               {onDelete && (
                 <DropdownMenuItem
-                  className="text-destructive"
+                  className="text-red-400 focus:text-red-300"
                   onClick={() => onDelete(asset.id)}
                 >
                   Delete
@@ -145,17 +174,32 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
           </DropdownMenu>
         </div>
 
-        <div className="flex items-center gap-2 mt-2">
-          <Badge variant="outline" className={categoryColors[asset.category]}>
+        {/* Description */}
+        <p className="text-sm text-violet-300/70 truncate">
+          {asset.description || "No description"}
+        </p>
+
+        {/* Metadata Row */}
+        <div className="flex items-center gap-2 pt-2 border-t border-violet-500/20">
+          <Badge
+            variant="outline"
+            className={cn("border-violet-500/30", categoryColors[asset.category])}
+          >
             {asset.category}
           </Badge>
-          <span className="text-xs text-muted-foreground ml-auto">{fileSize} MB</span>
+          <span className="text-xs text-violet-400/70 ml-auto">{fileSize} MB</span>
         </div>
       </CardContent>
 
-      <CardFooter className="px-4 pb-4 pt-0 text-xs text-muted-foreground">
-        Added {formatDistanceToNow(new Date(asset.created_at), { addSuffix: true })}
+      {/* Footer */}
+      <CardFooter className="px-4 pb-4 pt-0">
+        <p className="text-xs text-violet-400/50">
+          Added {formatDistanceToNow(new Date(asset.created_at), { addSuffix: true })}
+        </p>
       </CardFooter>
+
+      {/* Hover Glow Effect */}
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-violet-500/10 via-cyan-500/10 to-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none blur-xl" />
     </Card>
   );
 }
