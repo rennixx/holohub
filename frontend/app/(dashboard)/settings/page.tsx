@@ -230,8 +230,8 @@ export default function SettingsPage() {
                   />
                 </div>
 
-                <Button onClick={handleSaveProfile} variant="holo-primary" disabled={updateSettings.isPending}>
-                  {updateSettings.isPending ? (
+                <Button onClick={handleSaveProfile} variant="holo-primary" disabled={profileMutation.isPending}>
+                  {profileMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Saving...
