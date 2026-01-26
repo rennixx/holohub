@@ -89,6 +89,18 @@ from app.schemas.user import (
     UserMe,
     UserProfile,
 )
+from app.schemas.settings import (
+    UserSettingsBase,
+    UserSettingsUpdate,
+    UserSettingsResponse,
+    OrgSettingsBase,
+    OrgSettingsUpdate,
+    OrgSettingsResponse,
+    LogoUploadResponse,
+    SettingsErrorResponse,
+    ThemePreference,
+    ViewMode,
+)
 
 __all__ = [
     # Common
