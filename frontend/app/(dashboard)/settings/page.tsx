@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/lib/store";
 import { organizationsApi, usersApi } from "@/lib/api";
 import { useSettings, useUpdateSettings, useOrgSettings, useUpdateOrgSettings } from "@/hooks/useSettings";
-import { Loader2, User as UserIcon, Lock, Bell, Palette } from "lucide-react";
+import { Loader2, User as UserIcon, Lock, Bell, Palette, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 // Common timezones
@@ -601,6 +601,37 @@ export default function SettingsPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Quick Links to Other Settings */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="glass-holo hover:ring-2 hover:ring-violet-500/30 transition-all cursor-pointer" onClick={() => window.location.href = "/settings/organization"}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-violet-600 to-cyan-500 flex items-center justify-center">
+                <Palette className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="font-medium text-white">Organization Settings</p>
+                <p className="text-sm text-violet-400">Branding, logo, domains</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-holo hover:ring-2 hover:ring-violet-500/30 transition-all cursor-pointer" onClick={() => window.location.href = "/settings/billing"}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-violet-600 to-cyan-500 flex items-center justify-center">
+                <CreditCard className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="font-medium text-white">Billing & Plans</p>
+                <p className="text-sm text-violet-400">Subscription, invoices</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
