@@ -1,21 +1,56 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { usersApi } from "@/lib/api";
-import { Plus } from "lucide-react";
+import { InviteUserModal } from "@/components/settings/InviteUserModal";
+import { EditUserModal } from "@/components/settings/EditUserModal";
+import { DeleteConfirmDialog } from "@/components/settings/DeleteConfirmDialog";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { UserRole } from "@/types";
+import { useAuthStore } from "@/lib/store";
 
 export default function TeamSettingsPage() {
+  const { user: currentUser } = useAuthStore();
+  const queryClient = useQueryClient();
+
   const { data: users, isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
       return await usersApi.list();
     },
   });
+
+  // Modal states
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<typeof users.items[0] | null>(null);
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: string) => usersApi.delete(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User removed successfully");
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Failed to remove user";
+      toast.error(message);
+    },
+  });
+
+  const handleDeleteUser = async () => {
+    if (selectedUser) {
+      await deleteUserMutation.mutateAsync(selectedUser.id);
+    }
+  };
+
+  const canManageUsers = currentUser?.role === "owner" || currentUser?.role === "admin";
 
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
@@ -41,16 +76,18 @@ export default function TeamSettingsPage() {
             Manage users and permissions
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Invite User
-        </Button>
+        {canManageUsers && (
+          <Button onClick={() => setInviteModalOpen(true)} variant="holo-primary">
+            <Plus className="mr-2 h-4 w-4" />
+            Invite User
+          </Button>
+        )}
       </div>
 
-      <Card>
+      <Card className="glass-holo">
         <CardHeader>
-          <CardTitle>Team Members</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-white">Team Members</CardTitle>
+          <CardDescription className="text-violet-300/70">
             {users?.meta.total || 0} member{users?.meta.total !== 1 ? "s" : ""}
           </CardDescription>
         </CardHeader>
@@ -71,8 +108,8 @@ export default function TeamSettingsPage() {
               <TableBody>
                 {users?.items.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.full_name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
+                    <TableCell className="font-medium text-white">{user.full_name}</TableCell>
+                    <TableCell className="text-violet-300">{user.email}</TableCell>
                     <TableCell>
                       <Badge className={getRoleBadgeColor(user.role)}>
                         {user.role}
@@ -90,9 +127,31 @@ export default function TeamSettingsPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        Edit
-                      </Button>
+                      {canManageUsers && (
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setEditModalOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setDeleteModalOpen(true);
+                            }}
+                            disabled={user.id === currentUser?.id}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-400" />
+                          </Button>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -101,6 +160,31 @@ export default function TeamSettingsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <InviteUserModal
+        open={inviteModalOpen}
+        onOpenChange={setInviteModalOpen}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["users"] })}
+      />
+
+      <EditUserModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        user={selectedUser}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["users"] })}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        title="Remove Team Member"
+        message={`Are you sure you want to remove ${selectedUser?.full_name || selectedUser?.email} from your organization? They will lose access to all resources.`}
+        confirmText="Remove User"
+        requiresConfirmation={selectedUser?.role === "owner"}
+        confirmationText={selectedUser?.full_name || ""}
+        onConfirm={handleDeleteUser}
+      />
     </div>
   );
 }
