@@ -4,6 +4,44 @@
 
 @layer base {
   :root {
+    /* Holographic Dark Theme (Default) */
+    --background: 222 40% 6%; /* #0d1019 - Deep space black */
+    --foreground: 0 0% 98%; /* #fafafa - Near white */
+    --card: 222 35% 10%; /* #121826 - Surface black */
+    --card-foreground: 0 0% 98%;
+    --popover: 222 35% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 263 80% 62%; /* #8b5cf6 - Electric violet */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 189 85% 55%; /* #06b6d4 - Cyan hologram */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 222 30% 15%; /* #1a2035 - Elevated surface */
+    --muted-foreground: 220 15% 65%; /* #9ca3af - Muted text */
+    --accent: 280 75% 65%; /* #a78bfa - Soft lavender */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 85% 55%; /* #ef4444 - Red with glow */
+    --destructive-foreground: 0 0% 100%;
+    --border: 263 50% 40%; /* Holographic border */
+    --input: 263 50% 40%;
+    --ring: 263 80% 62%;
+    --radius: 0.5rem;
+
+    /* Holographic theme colors */
+    --holo-bg-deep: 220 40% 6%;
+    --holo-bg-surface: 222 35% 10%;
+    --holo-bg-elevated: 223 30% 15%;
+    --holo-primary: 263 80% 62%;
+    --holo-secondary: 189 85% 55%;
+    --holo-accent: 280 75% 65%;
+    --holo-highlight: 300 80% 60%;
+    --holo-success: 142 75% 55%;
+    --holo-warning: 38 95% 55%;
+    --holo-error: 0 85% 55%;
+    --holo-info: 199 85% 55%;
+  }
+
+  .light {
+    /* Light theme (optional, for accessibility) */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -23,29 +61,6 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
   }
 }
 
@@ -60,27 +75,68 @@
 }
 
 @layer utilities {
+  /* Glass holographic effect */
+  .glass-holo {
+    background: hsla(222, 35%, 10%, 0.6);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid hsla(263, 80%, 62%, 0.2);
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.3),
+      0 2px 4px -1px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 0 hsla(263, 80%, 62%, 0.1);
+  }
+
+  /* Glow effects */
+  .glow-primary {
+    box-shadow:
+      0 0 20px hsla(263, 80%, 62%, 0.3),
+      0 0 40px hsla(263, 80%, 62%, 0.2),
+      0 0 60px hsla(263, 80%, 62%, 0.1);
+  }
+
+  .glow-secondary {
+    box-shadow:
+      0 0 20px hsla(189, 85%, 55%, 0.3),
+      0 0 40px hsla(189, 85%, 55%, 0.2),
+      0 0 60px hsla(189, 85%, 55%, 0.1);
+  }
+
+  .glow-success {
+    box-shadow: 0 0 20px hsla(142, 75%, 55%, 0.3);
+  }
+
+  .glow-error {
+    box-shadow: 0 0 20px hsla(0, 85%, 55%, 0.3);
+  }
+
+  /* Holographic scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+    scrollbar-color: hsla(263, 80%, 62%, 0.5) hsla(222, 35%, 10%, 0.5);
   }
 
   .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 10px;
+    height: 10px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
+    background: hsla(222, 35%, 10%, 0.5);
+    border-radius: 10px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted-foreground) / 0.3);
-    border-radius: 3px;
+    background: linear-gradient(180deg, hsla(263, 80%, 62%, 0.5), hsla(189, 85%, 55%, 0.5));
+    border-radius: 10px;
+    border: 2px solid hsla(222, 35%, 10%, 0.5);
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--muted-foreground) / 0.5);
+    background: linear-gradient(180deg, hsla(263, 80%, 62%, 0.7), hsla(189, 85%, 55%, 0.7));
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-corner {
+    background: hsla(222, 35%, 10%, 0.5);
   }
 }
 
@@ -104,3 +160,117 @@
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* Holographic animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes holographic-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes border-pulse {
+  0%, 100% {
+    border-color: hsla(263, 80%, 62%, 0.2);
+    box-shadow: 0 0 0 hsla(263, 80%, 62%, 0);
+  }
+  50% {
+    border-color: hsla(263, 80%, 62%, 0.4);
+    box-shadow: 0 0 20px hsla(263, 80%, 62%, 0.1);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.4s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+.holo-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsla(263, 80%, 62%, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: holographic-shimmer 3s ease-in-out infinite;
+}
+
+.card-hover-pulse:hover {
+  animation: border-pulse 2s ease-in-out infinite;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsla(263, 80%, 62%, 0.1) 0%,
+    hsla(263, 80%, 62%, 0.2) 50%,
+    hsla(263, 80%, 62%, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Staggered animations for lists */
+.stagger-in > * {
+  animation: fade-in-up 0.4s ease-out backwards;
+}
+
+.stagger-in > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-in > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-in > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-in > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-in > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-in > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-in > *:nth-child(n+7) { animation-delay: 300ms; }
