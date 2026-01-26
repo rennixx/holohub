@@ -68,8 +68,8 @@ class UserSettings(Base, TimestampMixin):
 
     # Primary key and foreign key
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True
+    user_id: Mapped[UUID] = mapped_column(
+        PGUUID(), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True
     )
 
     # Relationship to User
