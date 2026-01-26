@@ -209,7 +209,7 @@ async def get_organization_settings(
         slug=org.slug,
         branding=org.branding,
         allowed_domains=org.allowed_domains,
-        default_device_settings=org.default_device_settings,
+        default_device_settings=getattr(org, 'default_device_settings', None),
         created_at=org.created_at.isoformat(),
         updated_at=org.updated_at.isoformat(),
     )
@@ -275,7 +275,7 @@ async def update_organization_settings(
         slug=org.slug,
         branding=org.branding,
         allowed_domains=org.allowed_domains,
-        default_device_settings=org.default_device_settings,
+        default_device_settings=getattr(org, 'default_device_settings', None),
         created_at=org.created_at.isoformat(),
         updated_at=org.updated_at.isoformat(),
     )
