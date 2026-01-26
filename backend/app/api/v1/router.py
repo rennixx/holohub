@@ -5,7 +5,7 @@ Aggregates all v1 API routes.
 """
 from fastapi import APIRouter
 
-from app.api.v1 import auth, organizations, assets, devices, playlists, settings
+from app.api.v1 import auth, organizations, assets, devices, playlists, settings, users
 from app.core.config import get_settings
 
 settings_config = get_settings()
@@ -30,5 +30,5 @@ api_router.include_router(playlists.router, prefix="/playlists", tags=["Playlist
 # Include settings routes
 api_router.include_router(settings.router, prefix="/settings", tags=["Settings"])
 
-# TODO: Include other routes when created
-# api_router.include_router(users.router, prefix="/users", tags=["Users"])
+# Include users routes
+api_router.include_router(users.router, prefix="/users", tags=["Users"])

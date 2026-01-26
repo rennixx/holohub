@@ -5,16 +5,17 @@ Endpoints for user management including profile updates.
 """
 from typing import Any
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Body, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.api.deps import (
     DBSession,
     CurrentUser,
 )
 from app.models.user import User
-from app.schemas.user import UserResponse, UserUpdate
-from app.core.security import get_password_hash
+from app.schemas.user import UserResponse, UserUpdate, UserPasswordChange
+from app.core.security import verify_password, get_password_hash
 
 router = APIRouter()
 
@@ -38,11 +39,13 @@ async def update_current_user(
 
     Allows updating:
     - full_name: User's display name
+    - avatar_url: Profile picture URL
     """
-    # Only allow updating full_name for now
-    # Other fields like email require special handling
+    # Only allow updating safe fields for self-update
     if updates.full_name is not None:
         current_user.full_name = updates.full_name
+    if updates.avatar_url is not None:
+        current_user.avatar_url = updates.avatar_url
 
     await db.commit()
     await db.refresh(current_user)
@@ -52,8 +55,7 @@ async def update_current_user(
 
 @router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
 async def change_password(
-    current_password: str,
-    new_password: str,
+    data: UserPasswordChange,
     current_user: CurrentUser,
     db: DBSession,
 ) -> None:
@@ -62,6 +64,13 @@ async def change_password(
 
     Requires the current password for verification.
     """
-    # TODO: Implement password change with current password verification
-    # For now, this is a placeholder
-    pass
+    # Verify current password
+    if not verify_password(data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect current password",
+        )
+
+    # Update password
+    current_user.hashed_password = get_password_hash(data.new_password)
+    await db.commit()
