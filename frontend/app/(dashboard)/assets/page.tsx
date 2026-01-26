@@ -36,14 +36,23 @@ export default function AssetsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Assets</h1>
-          <p className="text-muted-foreground">
-            Manage your 3D models and media files
+          <h1 className="text-3xl font-bold text-white">
+            <span className="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              Asset Library
+            </span>
+          </h1>
+          <p className="text-violet-300/70 mt-1">
+            Manage your 3D models and holographic content
           </p>
         </div>
-        <Button onClick={() => router.push("/assets/upload")}>
+        <Button
+          variant="holo-primary"
+          className="shadow-lg shadow-violet-500/30"
+          onClick={() => router.push("/assets/upload")}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Upload Asset
         </Button>
