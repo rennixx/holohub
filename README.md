@@ -299,7 +299,7 @@ We welcome contributions! Please see our contributing guidelines:
 
 ## License
 
-This project is licensed under the MIT License - see the [License](License) file for details.
+This project is licensed under the MIT License - see the [LICENSE](License) file for details.
 
 ## Support
 
