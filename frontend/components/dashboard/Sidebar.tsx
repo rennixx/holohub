@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuthStore } from "@/lib/store";
+//import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// import { useAuthStore } from "@/lib/store";
 
 interface NavItem {
   title: string;
@@ -62,18 +62,18 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { sidebarCollapsed, toggleSidebar, setSidebarCollapsed } = useUIStore();
-  const { user } = useAuthStore();
+  const { sidebarCollapsed, /* toggleSidebar, */ setSidebarCollapsed } = useUIStore();
+  // const { user } = useAuthStore();
 
-  const getUserInitials = () => {
-    if (!user?.full_name) return "U";
-    return user.full_name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  // const getUserInitials = () => {
+  //   if (!user?.full_name) return "U";
+  //   return user.full_name
+  //     .split(" ")
+  //     .map((n) => n[0])
+  //     .join("")
+  //     .toUpperCase()
+  //     .slice(0, 2);
+  // };
 
   return (
     <div
@@ -121,31 +121,7 @@ export function Sidebar() {
         )}
       </div>
 
-      {/* User Profile */}
-      <div className="relative z-10 border-b border-violet-500/20 p-4">
-        <div className={cn(
-          "flex items-center gap-3 p-2 rounded-xl transition-all duration-300",
-          "hover:bg-violet-500/10 hover:border-violet-500/30",
-          sidebarCollapsed && "justify-center"
-        )}>
-          <div className="relative">
-            <Avatar className="h-10 w-10 ring-2 ring-violet-500/30">
-              <AvatarImage src="" alt={user?.full_name} />
-              <AvatarFallback className="bg-gradient-to-br from-violet-600 to-cyan-500 text-white text-xs font-semibold">
-                {getUserInitials()}
-              </AvatarFallback>
-            </Avatar>
-            {/* Online indicator */}
-            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-green-500 rounded-full border-2 border-slate-950" />
-          </div>
-          {!sidebarCollapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white truncate">{user?.full_name}</p>
-              <p className="text-xs text-violet-400/70 truncate">{user?.email}</p>
-            </div>
-          )}
-        </div>
-      </div>
+      
 
       {/* Navigation */}
       <ScrollArea className="relative z-10 flex-1 px-3 py-4">
@@ -198,17 +174,7 @@ export function Sidebar() {
         </nav>
 
         {/* Bottom section */}
-        {!sidebarCollapsed && (
-          <div className="mt-6 pt-6 border-t border-violet-500/20">
-            <Link
-              href="/settings"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-violet-300/70 hover:text-violet-200 hover:bg-violet-500/10 transition-all duration-200"
-            >
-              <Settings className="h-5 w-5" />
-              <span className="text-sm font-medium">Settings</span>
-            </Link>
-          </div>
-        )}
+        
       </ScrollArea>
 
       {/* Collapse Toggle */}
