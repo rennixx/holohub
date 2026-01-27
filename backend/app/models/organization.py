@@ -125,6 +125,7 @@ class Organization(Base, TimestampMixin, SoftDeleteMixin):
     devices = relationship("Device", back_populates="organization", cascade="all, delete-orphan")
     assets = relationship("Asset", back_populates="organization", cascade="all, delete-orphan")
     playlists = relationship("Playlist", back_populates="organization", cascade="all, delete-orphan")
+    invoices = relationship("Invoice", cascade="all, delete-orphan")
 
     # Indexes for soft delete
     __table_args__ = (

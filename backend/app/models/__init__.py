@@ -68,6 +68,7 @@ class OrganizationMixin:
 from app.models.asset import Asset, AssetAnalytics, AssetStatus
 from app.models.audit_log import AuditLog
 from app.models.device import Device, DeviceHeartbeat, DeviceStatus, HardwareType
+from app.models.invoice import Invoice, InvoiceStatus
 from app.models.organization import Organization
 from app.models.playlist import Playlist, PlaylistItem, DevicePlaylist, TransitionType
 from app.models.user import User, UserRole
@@ -94,6 +95,8 @@ __all__ = [
     "DevicePlaylist",
     "TransitionType",
     "AuditLog",
+    "Invoice",
+    "InvoiceStatus",
     "UserSettings",
     "ThemePreference",
     "ViewMode",
