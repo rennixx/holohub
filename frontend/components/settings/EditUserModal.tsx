@@ -183,5 +183,3 @@ export function EditUserModal({ open, onOpenChange, user, onSuccess }: EditUserM
     </Dialog>
   );
 }
-
-export { EditUserModal as EditUserModal };
