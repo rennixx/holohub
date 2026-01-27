@@ -128,5 +128,3 @@ export function DeleteConfirmDialog({
     </Dialog>
   );
 }
-
-export { DeleteConfirmDialog as DeleteConfirmDialog };
