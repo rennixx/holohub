@@ -5,8 +5,6 @@ Revises:
 Create Date: 2025-01-27 12:00:00.000000
 
 """
-from typing import Sequence, Union
-
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
@@ -14,9 +12,9 @@ from sqlalchemy import UUID
 
 # revision identifiers, used by Alembic.
 revision = 'add_user_settings'
-down_revision = None  # This will be set when the migration is created in the actual system
-branch_labels = Union[str, Sequence[str], None]
-depends_on: Union[str, Sequence[str], None] = None
+down_revision = None
+branch_labels = None
+depends_on = None
 
 
 def upgrade() -> None:
