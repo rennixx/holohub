@@ -42,6 +42,7 @@ class Asset(Base, TimestampMixin, SoftDeleteMixin, OrganizationMixin):
         thumbnail_url: Optional CDN URL for thumbnail
         metadata: Additional asset metadata (dimensions, etc.)
         created_by: User who uploaded the asset
+        sha256_hash: SHA-256 hash of the original file
     """
 
     __tablename__ = "assets"
@@ -113,6 +114,14 @@ class Asset(Base, TimestampMixin, SoftDeleteMixin, OrganizationMixin):
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
+    )
+
+    # SHA-256 hash of the original file
+    sha256_hash: Mapped[Optional[str]] = mapped_column(
+        String(128),
+        nullable=True,
+        index=True,
+        doc="SHA-256 hash of the original file",
     )
 
     # Relationships

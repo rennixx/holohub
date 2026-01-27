@@ -156,6 +156,7 @@ class AssetResponse(AssetBase):
     created_at: datetime
     updated_at: datetime
     deleted_at: Optional[datetime]
+    sha256_hash: Optional[str] = None
 
 
 class AssetListItem(BaseModel):
