@@ -5,114 +5,87 @@
  */
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useAuthStore } from "@/lib/store";
-import { organizationsApi } from "@/lib/api";
+import { billingApi } from "@/lib/api";
+import type { PlanDetails, UsageStats, InvoiceItem } from "@/lib/api/billing";
 import {
   CreditCard,
   Package,
   CheckCircle2,
-  ArrowRight,
   FileText,
   Download,
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
-// Mock plans data
-const PLANS = [
-  {
-    id: "free",
-    name: "Free",
-    price: "$0",
-    period: "forever",
-    description: "For individuals and small teams",
-    features: [
-      "Up to 3 devices",
-      "Up to 5 playlists",
-      "Basic support",
-      "Community forum access",
-    ],
-    cta: "Current Plan",
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: "$29",
-    period: "/month",
-    description: "For growing teams and businesses",
-    features: [
-      "Up to 50 devices",
-      "Unlimited playlists",
-      "Priority support",
-      "Advanced analytics",
-      "API access",
-    ],
-    cta: "Upgrade to Pro",
-    popular: true,
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "Custom",
-    period: "contact sales",
-    description: "For large organizations",
-    features: [
-      "Unlimited everything",
-      "Dedicated support",
-      "Custom integrations",
-      "SLA guarantee",
-      "White-label options",
-    ],
-    cta: "Contact Sales",
-  },
-];
-
-// Mock invoices data
-const INVOICES = [
-  {
-    id: "inv-001",
-    date: "2025-01-15",
-    amount: "$29.00",
-    status: "paid",
-    description: "Pro Plan - January 2025",
-  },
-  {
-    id: "inv-002",
-    date: "2024-12-15",
-    amount: "$29.00",
-    status: "paid",
-    description: "Pro Plan - December 2024",
-  },
-];
-
 export default function BillingSettingsPage() {
   const { user } = useAuthStore();
-  const { data: organization } = useQuery({
-    queryKey: ["organization"],
-    queryFn: () => organizationsApi.get(),
+  const queryClient = useQueryClient();
+
+  // Fetch subscription info
+  const { data: subscription, isLoading: subscriptionLoading } = useQuery({
+    queryKey: ["billing", "subscription"],
+    queryFn: () => billingApi.getSubscription(),
   });
 
-  // Determine current plan based on tier
-  const currentPlan = organization?.tier || "free";
+  // Fetch usage stats
+  const { data: usage, isLoading: usageLoading } = useQuery({
+    queryKey: ["billing", "usage"],
+    queryFn: () => billingApi.getUsage(),
+  });
 
-  // Mock usage data
-  const usage = {
-    devices: 12,
-    deviceLimit: currentPlan === "free" ? 3 : currentPlan === "pro" ? 50 : 9999,
-    playlists: 8,
-    playlistLimit: currentPlan === "free" ? 5 : 9999,
-    storage: 2.4,
-    storageLimit: currentPlan === "free" ? 10 : currentPlan === "pro" ? 100 : 1000,
+  // Fetch available plans
+  const { data: plans, isLoading: plansLoading } = useQuery({
+    queryKey: ["billing", "plans"],
+    queryFn: () => billingApi.getPlans(),
+  });
+
+  // Fetch invoices
+  const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
+    queryKey: ["billing", "invoices"],
+    queryFn: () => billingApi.getInvoices(),
+  });
+
+  // Upgrade plan mutation
+  const upgradeMutation = useMutation({
+    mutationFn: (tier: string) => billingApi.upgradePlan(tier),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["billing"] });
+      queryClient.invalidateQueries({ queryKey: ["organization"] });
+      toast.success(data.message);
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Failed to upgrade plan";
+      toast.error(message);
+    },
+  });
+
+  const handleUpgrade = (tier: string) => {
+    if (tier === "enterprise") {
+      window.location.href = "mailto:sales@holohub.com?subject=Enterprise%20Plan%20Inquiry";
+    } else {
+      upgradeMutation.mutate(tier);
+    }
   };
 
-  const devicePercentage = (usage.devices / usage.deviceLimit) * 100;
-  const storagePercentage = (usage.storage / usage.storageLimit) * 100;
+  const isLoading = subscriptionLoading || usageLoading || plansLoading || invoicesLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+      </div>
+    );
+  }
+
+  const currentPlan = subscription?.plan;
+  const currentTier = subscription?.tier || "free";
 
   return (
     <div className="space-y-6">
@@ -133,7 +106,15 @@ export default function BillingSettingsPage() {
         <CardHeader>
           <CardTitle className="text-white">Current Plan</CardTitle>
           <CardDescription className="text-violet-300/70">
-            You are currently on the <span className="font-semibold text-white">{PLANS.find((p) => p.id === currentPlan)?.name}</span> plan
+            You are currently on the <span className="font-semibold text-white">{currentPlan?.name}</span> plan
+            {subscription?.status && (
+              <Badge variant="outline" className={cn(
+                "ml-2",
+                subscription.is_active ? "text-green-500 border-green-500" : "text-amber-500 border-amber-500"
+              )}>
+                {subscription.status}
+              </Badge>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -143,30 +124,30 @@ export default function BillingSettingsPage() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-violet-300">Devices</span>
                 <span className="text-white font-medium">
-                  {usage.devices} / {usage.deviceLimit === 9999 ? "∞" : usage.deviceLimit}
+                  {usage?.devices} / {usage?.device_limit === 9999 ? "∞" : usage?.device_limit}
                 </span>
               </div>
-              <Progress value={devicePercentage} className="h-2" />
+              <Progress value={usage?.storage_percentage || 0} className="h-2" />
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-violet-300">Playlists</span>
                 <span className="text-white font-medium">
-                  {usage.playlists} / {usage.playlistLimit === 9999 ? "∞" : usage.playlistLimit}
+                  {usage?.playlists} / {usage?.playlist_limit === 9999 ? "∞" : usage?.playlist_limit}
                 </span>
               </div>
-              <Progress value={(usage.playlists / usage.playlistLimit) * 100} className="h-2" />
+              <Progress value={(usage && usage.playlist_limit > 0 ? (usage.playlists / usage.playlist_limit) * 100 : 0)} className="h-2" />
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-violet-300">Storage</span>
                 <span className="text-white font-medium">
-                  {usage.storage}GB / {usage.storageLimit}GB
+                  {usage?.storage_gb}GB / {usage?.storage_limit_gb}GB
                 </span>
               </div>
-              <Progress value={storagePercentage} className="h-2" />
+              <Progress value={usage?.storage_percentage || 0} className="h-2" />
             </div>
           </div>
         </CardContent>
@@ -176,15 +157,16 @@ export default function BillingSettingsPage() {
       <div>
         <h2 className="text-xl font-semibold text-white mb-4">Available Plans</h2>
         <div className="grid gap-6 md:grid-cols-3">
-          {PLANS.map((plan) => (
+          {plans?.map((plan) => (
             <Card
               key={plan.id}
               className={cn(
                 "glass-holo transition-all",
-                plan.popular && "ring-2 ring-violet-500 shadow-lg shadow-violet-500/20"
+                plan.is_current && "ring-2 ring-violet-500 shadow-lg shadow-violet-500/20",
+                plan.id === "pro" && !plan.is_current && "hover:ring-2 hover:ring-violet-500/30"
               )}
             >
-              {plan.popular && (
+              {plan.id === "pro" && !plan.is_current && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <Badge className="bg-gradient-to-r from-violet-600 to-cyan-500 text-white px-3 py-1">
                     Most Popular
@@ -211,21 +193,23 @@ export default function BillingSettingsPage() {
                   ))}
                 </ul>
                 <Button
-                  variant={plan.id === currentPlan ? "secondary" : "holo-primary"}
+                  variant={plan.is_current ? "secondary" : "holo-primary"}
                   className="w-full"
-                  disabled={plan.id === currentPlan}
-                  onClick={() => {
-                    if (plan.id !== currentPlan) {
-                      // Handle plan upgrade
-                      if (plan.id === "enterprise") {
-                        window.location.href = "mailto:sales@holohub.com?subject=Enterprise%20Plan%20Inquiry";
-                      } else {
-                        alert(`Upgrade to ${plan.name} plan - Payment integration coming soon!`);
-                      }
-                    }
-                  }}
+                  disabled={plan.is_current || upgradeMutation.isPending}
+                  onClick={() => !plan.is_current && handleUpgrade(plan.id)}
                 >
-                  {plan.cta}
+                  {upgradeMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : plan.is_current ? (
+                    "Current Plan"
+                  ) : plan.id === "enterprise" ? (
+                    "Contact Sales"
+                  ) : (
+                    `Upgrade to ${plan.name}`
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -252,7 +236,7 @@ export default function BillingSettingsPage() {
                 <p className="text-xs text-violet-400">No payment method on file</p>
               </div>
             </div>
-            <Button variant="holo-secondary" size="sm">
+            <Button variant="holo-secondary" size="sm" disabled>
               Add Payment Method
             </Button>
           </div>
@@ -267,7 +251,7 @@ export default function BillingSettingsPage() {
                 <p className="text-xs text-violet-400">Invoices sent to {user?.email}</p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" className="text-violet-300">
+            <Button variant="ghost" size="sm" className="text-violet-300" disabled>
               Change
             </Button>
           </div>
@@ -283,13 +267,13 @@ export default function BillingSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {INVOICES.length === 0 ? (
+          {invoices.length === 0 ? (
             <div className="text-center py-8 text-violet-400">
               No invoices yet
             </div>
           ) : (
             <div className="space-y-3">
-              {INVOICES.map((invoice) => (
+              {invoices.map((invoice) => (
                 <div
                   key={invoice.id}
                   className="flex items-center justify-between p-3 rounded-lg bg-violet-950/20 border border-violet-500/10"
@@ -304,21 +288,25 @@ export default function BillingSettingsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-white font-medium">{invoice.amount}</span>
+                    <span className="text-white font-medium">
+                      {invoice.currency === "USD" ? "$" : ""}{invoice.amount}
+                    </span>
                     <Badge
                       variant="outline"
                       className={invoice.status === "paid" ? "text-green-500 border-green-500" : ""}
                     >
                       {invoice.status}
                     </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-violet-300 hover:text-white"
-                      onClick={() => alert("Invoice download coming soon!")}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
+                    {invoice.invoice_pdf && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-violet-300 hover:text-white"
+                        onClick={() => window.open(invoice.invoice_pdf, "_blank")}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
