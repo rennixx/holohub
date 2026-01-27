@@ -7,12 +7,12 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import text
-from app.db.base import get_db
+from app.db.base import async_session_maker
 
 
 async def main():
     """Create billing tables."""
-    async with get_db() as db:
+    async with async_session_maker() as db:
         # Create invoice_status enum type
         await db.execute(text("""
             DO $$ BEGIN
