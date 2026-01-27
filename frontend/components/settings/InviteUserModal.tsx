@@ -166,4 +166,3 @@ export function InviteUserModal({ open, onOpenChange, onSuccess }: InviteUserMod
   );
 }
 
-export { InviteUserModal as InviteUserModal };
