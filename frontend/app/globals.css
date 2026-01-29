@@ -25,19 +25,6 @@
     --input: 263 50% 40%;
     --ring: 263 80% 62%;
     --radius: 0.5rem;
-
-    /* Holographic theme colors */
-    --holo-bg-deep: 220 40% 6%;
-    --holo-bg-surface: 222 35% 10%;
-    --holo-bg-elevated: 223 30% 15%;
-    --holo-primary: 263 80% 62%;
-    --holo-secondary: 189 85% 55%;
-    --holo-accent: 280 75% 65%;
-    --holo-highlight: 300 80% 60%;
-    --holo-success: 142 75% 55%;
-    --holo-warning: 38 95% 55%;
-    --holo-error: 0 85% 55%;
-    --holo-info: 199 85% 55%;
   }
 
   .light {
@@ -62,9 +49,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
